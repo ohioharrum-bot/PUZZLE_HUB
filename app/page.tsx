@@ -1,65 +1,100 @@
-import Image from "next/image";
+import PuzzleCard from '@/components/PuzzleCard'
+import AdBanner from '@/components/AdBanner'
+import { Puzzle } from '@/types/puzzle'
+import { getPuzzles } from '@/lib/puzzle-data'
+import PageMotion from '@/components/PageMotion'
+import AdSidebar from '@/components/AdSidebar'
+import Link from 'next/link'
 
-export default function Home() {
+export const revalidate = 60
+
+export default async function HomePage() {
+  const puzzles = await getPuzzles()
+
+  const daily = puzzles.filter(p => p.is_daily)
+  const byType = (type: string) => puzzles.filter(p => p.type === type)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <PageMotion>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="space-y-6">
+          <section className="motion-item overflow-hidden rounded-[34px] border border-black/10 bg-white/60 shadow-sm backdrop-blur">
+            <div className="border-b border-black/10 px-5 py-4">
+              <div className="flex items-center justify-between text-xs text-black/45">
+                <span>Daily puzzle studio</span>
+                <span>Updated from Supabase</span>
+              </div>
+            </div>
+            <div className="px-5 py-12 text-center md:px-12 md:py-16">
+              <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-black md:text-6xl">
+                Quiet puzzles for sharper everyday thinking
+              </h1>
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-black/50 md:text-base">
+                Play Sudoku, word search, logic, and jigsaw puzzles from a focused dashboard built for quick sessions and calm problem solving.
+              </p>
+              <div className="mt-7 flex justify-center">
+                <Link href="/puzzles/sudoku" className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/15 transition hover:-translate-y-0.5">
+                  Start with Sudoku
+                </Link>
+              </div>
+            </div>
+            <div className="grid border-t border-black/10 md:grid-cols-3">
+              <Metric label="Puzzle types" value="4" />
+              <Metric label="Daily picks" value={String(daily.length)} />
+              <Metric label="Live source" value="DB" />
+            </div>
+          </section>
+
+          <div className="motion-item">
+            <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP!} format="horizontal" />
+          </div>
+
+          {daily.length > 0 && (
+            <PuzzleSection title="Today&apos;s Puzzles" intro="Fresh picks ready for a short focused break." puzzles={daily} />
+          )}
+
+          <PuzzleSection title="Sudoku" intro="Number grids with clean constraints and instant play." puzzles={byType('sudoku')} />
+
+          <div className="motion-item">
+            <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM!} format="rectangle" />
+          </div>
+
+          <PuzzleSection title="Word Search" intro="Scan for hidden words across compact letter boards." puzzles={byType('wordsearch')} />
+          <PuzzleSection title="Logic Puzzles" intro="Small reasoning challenges with clear answer feedback." puzzles={byType('logic')} />
+          <PuzzleSection title="Jigsaw" intro="Visual board puzzles with a minimal tile interface." puzzles={byType('jigsaw')} />
+
+          <div className="motion-item">
+            <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM!} format="horizontal" />
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        <AdSidebar />
+      </div>
+    </PageMotion>
+  )
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-black/10 px-5 py-5 text-left md:border-r last:md:border-r-0">
+      <p className="text-3xl font-semibold tracking-[-0.03em] text-black">{value}</p>
+      <p className="mt-1 text-xs text-black/40">{label}</p>
     </div>
-  );
+  )
+}
+
+function PuzzleSection({ title, intro, puzzles }: { title: string; intro: string; puzzles: Puzzle[] }) {
+  if (!puzzles.length) return null
+  return (
+    <section className="motion-item">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-[-0.02em] text-black">{title}</h2>
+          <p className="mt-1 max-w-xl text-sm text-black/45">{intro}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {puzzles.map((p: Puzzle) => <PuzzleCard key={p.id} puzzle={p} />)}
+      </div>
+    </section>
+  )
 }
