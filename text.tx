@@ -11,3 +11,5 @@ NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=1122334455
 
 # Admin (simple password protection)
 ADMIN_SECRET="harrum"
+
+

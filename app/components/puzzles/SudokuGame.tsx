@@ -50,36 +50,42 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
         </div>
       )}
 
-      <div className="w-full overflow-x-auto rounded-3xl">
-        <div className="min-w-[22.5rem] grid grid-cols-9 border-2 border-gray-800">
+      <div className="w-full max-w-[min(100%,400px)] mx-auto overflow-hidden rounded-2xl border-2 border-gray-800 shadow-xl">
+        <div className="grid grid-cols-9 bg-gray-800 gap-[1px]">
           {grid.map((row, r) =>
             row.map((cell, c) => {
               const isInitial = initialGrid[r][c] !== 0
               const isSelected = selected?.[0] === r && selected?.[1] === c
               const isError = errors.has(`${r}-${c}`)
-              const borderRight = (c + 1) % 3 === 0 && c < 8 ? 'border-r-2 border-r-gray-800' : 'border-r border-r-gray-300'
-              const borderBottom = (r + 1) % 3 === 0 && r < 8 ? 'border-b-2 border-b-gray-800' : 'border-b border-b-gray-300'
+              
+              // Borders for 3x3 subgrids
+              const borderRight = (c + 1) % 3 === 0 && c < 8 ? 'mr-[1px]' : ''
+              const borderBottom = (r + 1) % 3 === 0 && r < 8 ? 'mb-[1px]' : ''
+              
               return (
-                <input
-                  key={`${r}-${c}`}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={cell || ''}
-                readOnly={isInitial}
-                onFocus={() => setSelected([r, c])}
-                onChange={e => handleInput(r, c, e.target.value)}
-                className={[
-                  'h-9 w-9 sm:h-10 sm:w-10 text-center text-sm sm:text-base font-medium outline-none',
-                  borderRight, borderBottom,
-                  isSelected ? 'bg-indigo-100' : '',
-                  isInitial ? 'bg-gray-50 font-bold text-gray-800' : 'text-indigo-700',
-                  isError ? 'bg-red-100 text-red-600' : '',
-                ].join(' ')}
-              />
-            )
-          })
-        )}
+                <div 
+                  key={`${r}-${c}`} 
+                  className={`aspect-square relative bg-white ${borderRight} ${borderBottom}`}
+                >
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={cell || ''}
+                    readOnly={isInitial}
+                    onFocus={() => setSelected([r, c])}
+                    onChange={e => handleInput(r, c, e.target.value)}
+                    className={[
+                      'absolute inset-0 w-full h-full text-center text-base sm:text-lg font-medium outline-none transition-colors',
+                      isSelected ? 'bg-indigo-50' : '',
+                      isInitial ? 'bg-gray-50/50 font-bold text-black' : 'text-indigo-600',
+                      isError ? 'bg-red-50 text-red-600' : '',
+                    ].join(' ')}
+                  />
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 

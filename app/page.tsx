@@ -38,10 +38,10 @@ export default async function HomePage() {
                 </Link>
               </div>
             </div>
-            <div className="grid border-t border-black/10 md:grid-cols-3">
-              <Metric label="Puzzle types" value="4" />
-              <Metric label="Daily picks" value={String(daily.length)} />
-              <Metric label="Live source" value="DB" />
+            <div className="grid grid-cols-3 border-t border-black/10">
+              <Metric label="Types" value="4" />
+              <Metric label="Daily" value={String(daily.length)} />
+              <Metric label="Source" value="DB" />
             </div>
           </section>
 
@@ -75,7 +75,7 @@ export default async function HomePage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-black/10 px-5 py-5 text-left md:border-r last:md:border-r-0">
+    <div className="border-black/10 px-5 py-5 text-left border-r last:border-r-0">
       <p className="text-3xl font-semibold tracking-[-0.03em] text-black">{value}</p>
       <p className="mt-1 text-xs text-black/40">{label}</p>
     </div>

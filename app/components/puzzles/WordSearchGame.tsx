@@ -42,10 +42,10 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 items-start md:items-stretch">
-      <div className="w-full overflow-x-auto">
+    <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <div className="w-full overflow-x-auto pb-4 lg:pb-0">
         <div
-          className="select-none min-w-[20rem] border-2 border-gray-300 rounded-lg overflow-hidden"
+          className="select-none inline-block min-w-max border-2 border-gray-200 rounded-2xl overflow-hidden shadow-sm bg-white"
           onMouseLeave={endSelect}
         >
           {grid.map((row: string[], r: number) => (
@@ -60,11 +60,22 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                     onMouseDown={() => startSelect(r, c)}
                     onMouseEnter={() => continueSelect(r, c)}
                     onMouseUp={endSelect}
+                    onTouchStart={() => startSelect(r, c)}
+                    onTouchMove={(e) => {
+                      const touch = e.touches[0]
+                      const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                      if (el && el.getAttribute('data-r')) {
+                        continueSelect(parseInt(el.getAttribute('data-r')!), parseInt(el.getAttribute('data-c')!))
+                      }
+                    }}
+                    onTouchEnd={endSelect}
+                    data-r={r}
+                    data-c={c}
                     className={[
-                      'w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-sm font-mono font-bold cursor-pointer border border-gray-100',
-                      isHighlighted ? 'bg-green-300 text-green-900' : '',
-                      isSelecting_ ? 'bg-indigo-300 text-indigo-900' : '',
-                      !isHighlighted && !isSelecting_ ? 'hover:bg-gray-100' : '',
+                      'w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-mono font-bold cursor-pointer border border-gray-50 transition-colors',
+                      isHighlighted ? 'bg-green-100 text-green-700' : '',
+                      isSelecting_ ? 'bg-indigo-100 text-indigo-700' : '',
+                      !isHighlighted && !isSelecting_ ? 'hover:bg-gray-50 text-gray-700' : '',
                     ].join(' ')}
                   >
                     {letter}
@@ -76,17 +87,29 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-4 min-w-[150px] w-full max-w-sm">
-        <h3 className="font-bold text-gray-700 mb-3">Find these words:</h3>
-        <ul className="space-y-1">
+      <div className="bg-white border border-black/10 rounded-2xl p-5 w-full lg:max-w-[280px] shadow-sm backdrop-blur">
+        <h3 className="font-semibold text-black mb-4 flex items-center justify-between">
+          <span>Word List</span>
+          <span className="text-xs font-normal text-black/40">{found.length}/{words.length} found</span>
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
           {words.map((word: string) => (
-            <li key={word} className={`text-sm font-mono font-semibold ${found.includes(word) ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-              {found.includes(word) ? 'Found' : 'Find'} {word}
-            </li>
+            <div 
+              key={word} 
+              className={`text-xs sm:text-sm font-mono p-2 rounded-lg border transition-all ${
+                found.includes(word) 
+                ? 'bg-green-50 border-green-200 text-green-700 line-through opacity-60' 
+                : 'bg-gray-50 border-gray-100 text-gray-600'
+              }`}
+            >
+              {word}
+            </div>
           ))}
-        </ul>
+        </div>
         {found.length === words.length && (
-          <p className="mt-4 text-green-600 font-bold">All found</p>
+          <div className="mt-4 p-3 bg-green-500 text-white rounded-xl text-center font-bold text-sm animate-bounce">
+            Puzzle Complete!
+          </div>
         )}
       </div>
     </div>
