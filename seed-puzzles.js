@@ -1,13 +1,13 @@
-require('dotenv').config({ path: '.env.local' });
-const { createClient } = require('@supabase/supabase-js');
-const { v4: uuidv4 } = require('uuid');
-const ws = require('ws');
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
+import ws from 'ws';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables in .env.local');
+  console.error('Missing Supabase environment variables');
   process.exit(1);
 }
 
@@ -140,7 +140,7 @@ async function seed() {
     });
   });
 
-  ['easy', 'medium', 'hard'].forEach((diff, i) => {
+  ['easy', 'medium', 'hard'].forEach((diff) => {
     const data = generateWordSearch(diff);
     newPuzzles.push({
       id: uuidv4(),
@@ -187,7 +187,7 @@ async function seed() {
 
   console.log(`📦 Generated ${newPuzzles.length} puzzles. Uploading to Supabase...`);
 
-  const { data, error } = await supabase.from('puzzles').insert(newPuzzles);
+  const { error } = await supabase.from('puzzles').insert(newPuzzles);
 
   if (error) {
     console.error('❌ Error seeding puzzles:', error.message);

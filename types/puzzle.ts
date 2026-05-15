@@ -43,8 +43,12 @@ export interface Puzzle {
 export interface Score {
   id: string
   puzzle_id: string
-  session_id: string
+  user_id?: string
+  ip_address?: string
   time_seconds: number
   completed: boolean
   created_at: string
+  profiles?: {
+    username: string
+  }
 }

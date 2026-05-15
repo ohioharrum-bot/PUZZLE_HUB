@@ -1,10 +1,35 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Brain, Hash, Puzzle, Search, Menu, X } from 'lucide-react'
+import { Brain, Hash, Puzzle, Search, Menu, X, User as UserIcon } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+import { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const supabase = createClient()
+  const router = useRouter()
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+    }
+    getUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.refresh()
+  }
 
   const navLinks = [
     { href: '/puzzles/sudoku', icon: Hash, label: 'Sudoku' },
@@ -36,6 +61,30 @@ export default function Header() {
           ))}
         </nav>
 
+        <div className="hidden items-center gap-3 md:flex">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Link href="/profile" className="flex items-center gap-2 text-xs font-medium text-black/60 hover:text-black">
+                <UserIcon className="h-4 w-4" />
+                Profile
+              </Link>
+              <button 
+                onClick={handleSignOut}
+                className="rounded-full bg-black px-4 py-2 text-xs font-medium text-white transition hover:bg-black/80"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="rounded-full bg-black px-4 py-2 text-xs font-medium text-white transition hover:bg-black/80"
+            >
+              Sign In
+            </Link>
+          )}
+        </div>
+
         {/* Mobile Menu Toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -61,6 +110,34 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            <hr className="my-2 border-black/5" />
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+                >
+                  <UserIcon className="h-5 w-5 text-black/40" />
+                  Profile
+                </Link>
+                <button
+                  onClick={() => { handleSignOut(); setIsOpen(false); }}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/auth/login"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+              >
+                <UserIcon className="h-5 w-5 text-black/40" />
+                Sign In
+              </Link>
+            )}
           </div>
         </nav>
       )}

@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { generateSudoku, generateWordSearch, generateLogicPuzzle } from '@/lib/puzzle-generators'
 import type { Difficulty, Puzzle, PuzzleData, PuzzleType } from '@/types/puzzle'
 
@@ -28,11 +28,6 @@ export default function AdminPage() {
     }
     setLoading(false)
   }
-
-  useEffect(() => {
-    if (!authed) return
-    loadPuzzles()
-  }, [authed])
 
   const handleCreate = async () => {
     setStatus('Creating...')
@@ -72,7 +67,13 @@ export default function AdminPage() {
       <h2 className="text-xl font-bold mb-4">Admin Login</h2>
       <input type="password" value={secret} onChange={e => setSecret(e.target.value)}
         placeholder="Admin secret" className="w-full border rounded-lg px-3 py-2 mb-3" />
-      <button onClick={() => setAuthed(true)} className="w-full bg-indigo-600 text-white py-2 rounded-lg">
+      <button 
+        onClick={() => {
+          setAuthed(true)
+          loadPuzzles()
+        }}
+        className="w-full bg-indigo-600 text-white py-2 rounded-lg"
+      >
         Enter
       </button>
     </div>
