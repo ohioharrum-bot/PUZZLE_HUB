@@ -10,11 +10,16 @@ export async function createServerSupabaseClient() {
       cookies: {
         getAll() { return cookieStore.getAll() },
         setAll(cookiesToSet) {
+          // You cannot set cookies in Server Components.
+          // This prevents crashes when Supabase tries to refresh tokens during SSR.
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )
-          } catch {}
+          } catch {
+            // This will fail in Server Components, which is expected.
+            // We ignore it to prevent the page from crashing.
+          }
         },
       },
     }

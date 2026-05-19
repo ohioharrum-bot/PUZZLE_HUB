@@ -1,44 +1,37 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Puzzle, SudokuPuzzleData } from '@/types/puzzle'
+import { formatTime } from '@/lib/utils'
 
 export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
   const puzzleData = puzzle.puzzle_data as SudokuPuzzleData
   const initialGrid: number[][] = puzzleData.puzzle
   const solution: number[][] = puzzleData.solution
+
   const [grid, setGrid] = useState<number[][]>(initialGrid.map(r => [...r]))
   const [selected, setSelected] = useState<[number, number] | null>(null)
   const [errors, setErrors] = useState<Set<string>>(new Set())
   const [solved, setSolved] = useState(false)
   const [seconds, setSeconds] = useState(0)
-  const inputs = useRef<(HTMLInputElement | null)[][]>(Array(9).fill(null).map(() => Array(9).fill(null)))
+  const [saving, setSaving] = useState(false)
 
+  // 9x9 grid of refs for arrow key navigation
+  const cellRefs = useRef<(HTMLInputElement | null)[][]>(
+    Array(9).fill(null).map(() => Array(9).fill(null))
+  )
+
+  // Timer
   useEffect(() => {
     if (solved) return
     const t = setInterval(() => setSeconds(s => s + 1), 1000)
     return () => clearInterval(t)
   }, [solved])
 
-  const handleInput = async (r: number, c: number, val: string) => {
-    if (initialGrid[r][c] !== 0 || solved) return
-    
-    // Get only the last character if multiple characters are somehow present
-    const lastChar = val.slice(-1)
-    const num = parseInt(lastChar) || 0
-    
-    const newGrid = grid.map(row => [...row])
-    newGrid[r][c] = num
-    setGrid(newGrid)
-
-    const newErrors = new Set(errors)
-    if (num !== 0 && solution[r][c] !== num) newErrors.add(`${r}-${c}`)
-    else newErrors.delete(`${r}-${c}`)
-    setErrors(newErrors)
-
-    // Check solved
-    const complete = newGrid.every((row, ri) => row.every((cell, ci) => cell === solution[ri][ci]))
-    if (complete && !solved) {
-      setSolved(true)
+  // Save score when solved
+  useEffect(() => {
+    if (!solved) return
+    const save = async () => {
+      setSaving(true)
       try {
         await fetch('/api/scores', {
           method: 'POST',
@@ -49,100 +42,178 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
           })
         })
       } catch (e) {
-        console.error('❌ Failed to submit score:', e)
+        console.error('❌ Failed to save score:', e)
+      } finally {
+        setSaving(false)
       }
     }
+    save()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [solved])
+
+  // ── Cell input ─────────────────────────────────────────────
+  const handleInput = useCallback((r: number, c: number, val: string) => {
+    if (initialGrid[r][c] !== 0 || solved) return
+    
+    const num = parseInt(val.slice(-1)) || 0
+    const newGrid = grid.map(row => [...row])
+    newGrid[r][c] = num
+    setGrid(newGrid)
+
+    const newErrors = new Set(errors)
+    if (num !== 0 && solution[r][c] !== num) newErrors.add(`${r}-${c}`)
+    else newErrors.delete(`${r}-${c}`)
+    setErrors(newErrors)
+
+    const complete = newGrid.every((row, ri) =>
+      row.every((cell, ci) => cell === solution[ri][ci])
+    )
+    if (complete) setSolved(true)
+  }, [grid, errors, initialGrid, solution, solved])
+
+  // ── Arrow key navigation ───────────────────────────────────
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!selected) return
+
+    const [r, c] = selected
+    const moves: Record<string, [number, number]> = {
+      ArrowUp:    [-1,  0],
+      ArrowDown:  [ 1,  0],
+      ArrowLeft:  [ 0, -1],
+      ArrowRight: [ 0,  1],
+    }
+
+    if (moves[e.key]) {
+      e.preventDefault()
+      const [dr, dc] = moves[e.key]
+      const nr = Math.max(0, Math.min(8, r + dr))
+      const nc = Math.max(0, Math.min(8, c + dc))
+      cellRefs.current[nr][nc]?.focus()
+      setSelected([nr, nc])
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      handleInput(r, c, '0')
+    }
+  }, [selected, handleInput])
+
+  const reset = () => {
+    setGrid(initialGrid.map(r => [...r]))
+    setErrors(new Set())
+    setSolved(false)
+    setSeconds(0)
   }
 
-  const fmt = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
-
   return (
-    <div className="flex flex-col items-center gap-6">
-      <div className="flex items-center gap-8 text-sm font-bold text-gray-500 uppercase tracking-widest">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-          Time {fmt(seconds)}
-        </div>
-        <div className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
+    <div className="flex flex-col items-center gap-5">
+      {/* Timer + difficulty */}
+      <div className="flex items-center gap-3 text-sm">
+        <span className="font-mono font-semibold text-black/70">{formatTime(seconds)}</span>
+        <span className="rounded-full border border-black/10 bg-white/60 px-3 py-1 text-xs capitalize text-black/50">
           {puzzle.difficulty}
-        </div>
-      </div>
-
-      <div className="relative w-full max-w-[min(100%,450px)] mx-auto p-1 bg-gray-900 rounded-2xl shadow-2xl border-4 border-gray-900 overflow-hidden">
-        <div className="grid grid-cols-9 bg-gray-900 gap-[1px]">
-          {grid.map((row, r) =>
-            row.map((cell, c) => {
-              const isInitial = initialGrid[r][c] !== 0
-              const isSelected = selected?.[0] === r && selected?.[1] === c
-              const isError = errors.has(`${r}-${c}`)
-              
-              // Borders for 3x3 subgrids
-              const borderRight = (c + 1) % 3 === 0 && c < 8 ? 'mr-[2px]' : ''
-              const borderBottom = (r + 1) % 3 === 0 && r < 8 ? 'mb-[2px]' : ''
-              
-              return (
-                <div 
-                  key={`${r}-${c}`} 
-                  className={`aspect-square relative bg-white ${borderRight} ${borderBottom} transition-colors ${isSelected ? 'bg-indigo-50' : ''}`}
-                >
-                  <input
-                    ref={el => { if (inputs.current) inputs.current[r][c] = el; }}
-                    type="text"
-                    inputMode="numeric"
-                    value={cell || ''}
-                    readOnly={isInitial || solved}
-                    onFocus={() => setSelected([r, c])}
-                    onChange={e => handleInput(r, c, e.target.value)}
-                    onKeyDown={e => {
-                      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                        e.preventDefault()
-                        let nr = r
-                        let nc = c
-                        if (e.key === 'ArrowUp') nr = Math.max(0, r - 1)
-                        if (e.key === 'ArrowDown') nr = Math.min(8, r + 1)
-                        if (e.key === 'ArrowLeft') nc = Math.max(0, c - 1)
-                        if (e.key === 'ArrowRight') nc = Math.min(8, c + 1)
-                        inputs.current[nr][nc]?.focus()
-                      } else if (e.key === 'Backspace' || e.key === 'Delete') {
-                        handleInput(r, c, '0')
-                      }
-                    }}
-                    className={[
-                      'absolute inset-0 w-full h-full text-center text-xl sm:text-2xl font-medium outline-none transition-all',
-                      isSelected ? 'bg-indigo-100/50 scale-105 z-10' : '',
-                      isInitial ? 'bg-gray-100/50 font-black text-black' : 'text-indigo-600',
-                      isError ? 'bg-red-50 text-red-600' : '',
-                      solved ? 'bg-green-50 text-green-700 font-bold' : '',
-                    ].join(' ')}
-                  />
-                </div>
-              )
-            })
-          )}
-        </div>
-        
+        </span>
         {solved && (
-          <div className="absolute inset-0 bg-green-500/10 backdrop-blur-[2px] flex items-center justify-center z-20 pointer-events-none">
-            <div className="bg-white px-8 py-4 rounded-3xl shadow-2xl border-4 border-green-500 animate-bounce">
-              <span className="text-2xl font-black text-green-600">PUZZLE SOLVED!</span>
-            </div>
-          </div>
+          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+            ✓ Solved!
+          </span>
         )}
       </div>
 
-      <div className="flex gap-4">
-        <button
-          onClick={() => { 
-            setGrid(initialGrid.map(r => [...r])); 
-            setErrors(new Set()); 
-            setSolved(false); 
-            setSeconds(0) 
-          }}
-          className="px-6 py-3 bg-white border-2 border-gray-200 hover:border-black rounded-2xl text-sm font-bold text-gray-700 transition-all hover:shadow-lg"
-        >
-          Reset Board
-        </button>
+      {/* Solved banner */}
+      {solved && (
+        <div className="w-full rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-center">
+          <p className="text-lg font-semibold text-green-800">🎉 Puzzle Complete!</p>
+          <p className="text-sm text-green-600">
+            Finished in <span className="font-mono font-bold">{formatTime(seconds)}</span>
+          </p>
+          {saving && <p className="mt-1 text-xs text-green-500">Saving score…</p>}
+          {!saving && <p className="mt-1 text-xs text-green-500">Score saved to leaderboard ✓</p>}
+        </div>
+      )}
+
+      {/* Grid */}
+      <div
+        className="grid grid-cols-9 overflow-hidden rounded-2xl border-2 border-black/20 shadow-sm bg-white"
+        role="grid"
+        aria-label="Sudoku puzzle"
+        onKeyDown={handleKeyDown}
+      >
+        {grid.map((row, r) =>
+          row.map((cell, c) => {
+            const isInitial = initialGrid[r][c] !== 0
+            const isSelected = selected?.[0] === r && selected?.[1] === c
+            const isError = errors.has(`${r}-${c}`)
+            const isSameRow = selected && selected[0] === r
+            const isSameCol = selected && selected[1] === c
+            const isSameBox =
+              selected &&
+              Math.floor(selected[0] / 3) === Math.floor(r / 3) &&
+              Math.floor(selected[1] / 3) === Math.floor(c / 3)
+
+            const borderR = (c + 1) % 3 === 0 && c < 8
+              ? 'border-r-2 border-r-black/25'
+              : 'border-r border-r-black/10'
+            const borderB = (r + 1) % 3 === 0 && r < 8
+              ? 'border-b-2 border-b-black/25'
+              : 'border-b border-b-black/10'
+
+            return (
+              <input
+                key={`${r}-${c}`}
+                ref={el => { cellRefs.current[r][c] = el }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={cell || ''}
+                readOnly={isInitial || solved}
+                aria-label={`Row ${r + 1}, Column ${c + 1}`}
+                onFocus={() => setSelected([r, c])}
+                onChange={e => handleInput(r, c, e.target.value)}
+                className={[
+                  'h-10 w-10 sm:h-12 sm:w-12 text-center text-lg outline-none transition-colors',
+                  borderR, borderB,
+                  isSelected
+                    ? 'bg-indigo-500 text-white font-bold'
+                    : isSameBox || isSameRow || isSameCol
+                      ? 'bg-indigo-50'
+                      : 'bg-white/70',
+                  isInitial
+                    ? 'font-bold text-black/80 cursor-default'
+                    : 'text-indigo-600 cursor-text',
+                  isError && !isSelected ? 'bg-red-100 text-red-600' : '',
+                  solved ? 'bg-green-50 text-green-700' : '',
+                ].join(' ')}
+              />
+            )
+          })
+        )}
       </div>
+
+      {/* Controls */}
+      {!solved && (
+        <div className="flex gap-2">
+          <button
+            onClick={reset}
+            className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-medium text-black/60 transition hover:bg-black/5"
+          >
+            🔄 Reset
+          </button>
+          <button
+            onClick={() => {
+              const newErrors = new Set<string>()
+              grid.forEach((row, r) =>
+                row.forEach((cell, c) => {
+                  if (cell !== 0 && cell !== solution[r][c]) newErrors.add(`${r}-${c}`)
+                })
+              )
+              setErrors(newErrors)
+            }}
+            className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-medium text-black/60 transition hover:bg-black/5"
+          >
+            ✓ Check
+          </button>
+        </div>
+      )}
+
+      <p className="text-xs text-black/30">Use arrow keys to navigate between cells</p>
     </div>
   )
 }
