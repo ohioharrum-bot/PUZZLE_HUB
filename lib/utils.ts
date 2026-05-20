@@ -13,3 +13,12 @@ export function getSessionId(): string {
   }
   return id
 }
+
+export function saveProgressLocally(puzzleId: string, seconds: number) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(`puzzle-completed-${puzzleId}`, JSON.stringify({
+    solvedAt: new Date().toISOString(),
+    seconds: seconds
+  }))
+  window.dispatchEvent(new Event('puzzle-solved'))
+}

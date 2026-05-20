@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { LogicPuzzleData, Puzzle } from '@/types/puzzle'
+import { saveProgressLocally } from '@/lib/utils'
+import { createClient } from '@/lib/supabase'
 
 export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
   const { question, answer, hint, options } = puzzle.puzzle_data as LogicPuzzleData
@@ -43,24 +45,29 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
     setRevealed(true)
     if (opt === answer && !solved) {
       setSolved(true)
-      try {
-        await fetch('/api/scores', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            puzzle_id: puzzle.id,
-            time_seconds: seconds
+      const save = async () => {
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (!session) {
+          saveProgressLocally(puzzle.id, seconds)
+        }
+
+        try {
+          await fetch('/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              puzzle_id: puzzle.id,
+              time_seconds: seconds
+            })
           })
-        })
-        // Save to localStorage
-        localStorage.setItem(`puzzle-completed-${puzzle.id}`, JSON.stringify({
-          solvedAt: new Date().toISOString(),
-          seconds
-        }))
-        setHasSaved(true)
-      } catch (e) {
-        console.error('❌ Failed to submit score:', e)
+          setHasSaved(true)
+        } catch (e) {
+          console.error('❌ Failed to submit score:', e)
+        }
       }
+      save()
     }
   }
 

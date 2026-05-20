@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Puzzle, SudokuPuzzleData } from '@/types/puzzle'
-import { formatTime } from '@/lib/utils'
+import { formatTime, saveProgressLocally } from '@/lib/utils'
+import { createClient } from '@/lib/supabase'
 
 export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
   const puzzleData = puzzle.puzzle_data as SudokuPuzzleData
@@ -51,6 +52,14 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
     const save = async () => {
       setSaving(true)
       try {
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+
+        // Only save to localStorage if guest (not logged in)
+        if (!session) {
+          saveProgressLocally(puzzle.id, seconds)
+        }
+        
         await fetch('/api/scores', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -59,11 +68,6 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
             time_seconds: seconds
           })
         })
-        // Save completion state locally
-        localStorage.setItem(`puzzle-completed-${puzzle.id}`, JSON.stringify({
-          solvedAt: new Date().toISOString(),
-          seconds
-        }))
         setHasSaved(true)
       } catch (e) {
         console.error('❌ Failed to save score:', e)

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import { JigsawPuzzleData, Puzzle } from '@/types/puzzle'
 import Image from 'next/image'
+import { saveProgressLocally } from '@/lib/utils'
+import { createClient } from '@/lib/supabase'
 
 export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
   const data = puzzle.puzzle_data as JigsawPuzzleData
@@ -44,24 +46,29 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
     if (newSolved.length === piecesCount) {
       setSolved(true)
       if (!hasSaved) {
-        try {
-          await fetch('/api/scores', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              puzzle_id: puzzle.id,
-              time_seconds: seconds
+        const save = async () => {
+          const supabase = createClient()
+          const { data: { session } } = await supabase.auth.getSession()
+          
+          if (!session) {
+            saveProgressLocally(puzzle.id, seconds)
+          }
+
+          try {
+            await fetch('/api/scores', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                puzzle_id: puzzle.id,
+                time_seconds: seconds
+              })
             })
-          })
-          // Save completion state locally
-          localStorage.setItem(`puzzle-completed-${puzzle.id}`, JSON.stringify({
-            solvedAt: new Date().toISOString(),
-            seconds
-          }))
-          setHasSaved(true)
-        } catch (e) {
-          console.error('❌ Failed to submit score:', e)
+            setHasSaved(true)
+          } catch (e) {
+            console.error('❌ Failed to submit score:', e)
+          }
         }
+        save()
       }
     }
   }
