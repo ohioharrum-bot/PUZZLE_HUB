@@ -14,11 +14,29 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
   const [solved, setSolved] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [hasSaved, setHasSaved] = useState(false)
 
   // 9x9 grid of refs for arrow key navigation
   const cellRefs = useRef<(HTMLInputElement | null)[][]>(
     Array(9).fill(null).map(() => Array(9).fill(null))
   )
+
+  // Restore from localStorage
+  useEffect(() => {
+    const storageKey = `puzzle-completed-${puzzle.id}`
+    const stored = localStorage.getItem(storageKey)
+    if (stored) {
+      try {
+        const { seconds: storedSeconds } = JSON.parse(stored)
+        setSeconds(storedSeconds)
+        setSolved(true)
+        setHasSaved(true)
+        setGrid(solution.map(r => [...r]))
+      } catch (e) {
+        console.error('Failed to parse stored puzzle state', e)
+      }
+    }
+  }, [puzzle.id, solution])
 
   // Timer
   useEffect(() => {
@@ -29,7 +47,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
 
   // Save score when solved
   useEffect(() => {
-    if (!solved) return
+    if (!solved || hasSaved) return
     const save = async () => {
       setSaving(true)
       try {
@@ -41,6 +59,12 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
             time_seconds: seconds
           })
         })
+        // Save completion state locally
+        localStorage.setItem(`puzzle-completed-${puzzle.id}`, JSON.stringify({
+          solvedAt: new Date().toISOString(),
+          seconds
+        }))
+        setHasSaved(true)
       } catch (e) {
         console.error('❌ Failed to save score:', e)
       } finally {
@@ -49,7 +73,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
     }
     save()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [solved])
+  }, [solved, hasSaved, puzzle.id, seconds])
 
   // ── Cell input ─────────────────────────────────────────────
   const handleInput = useCallback((r: number, c: number, val: string) => {

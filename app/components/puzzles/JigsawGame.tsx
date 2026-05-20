@@ -9,6 +9,24 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
   const [solvedPieces, setSolvedPieces] = useState<number[]>([])
   const [solved, setSolved] = useState(false)
   const [seconds, setSeconds] = useState(0)
+  const [hasSaved, setHasSaved] = useState(false)
+
+  // Restore from localStorage
+  useEffect(() => {
+    const storageKey = `puzzle-completed-${puzzle.id}`
+    const stored = localStorage.getItem(storageKey)
+    if (stored) {
+      try {
+        const { seconds: storedSeconds } = JSON.parse(stored)
+        setSeconds(storedSeconds)
+        setSolved(true)
+        setHasSaved(true)
+        setSolvedPieces(Array.from({ length: piecesCount }, (_, i) => i))
+      } catch (e) {
+        console.error('Failed to parse stored puzzle state', e)
+      }
+    }
+  }, [puzzle.id, piecesCount])
 
   useEffect(() => {
     if (solved) return
@@ -25,17 +43,25 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
 
     if (newSolved.length === piecesCount) {
       setSolved(true)
-      try {
-        await fetch('/api/scores', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            puzzle_id: puzzle.id,
-            time_seconds: seconds
+      if (!hasSaved) {
+        try {
+          await fetch('/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              puzzle_id: puzzle.id,
+              time_seconds: seconds
+            })
           })
-        })
-      } catch (e) {
-        console.error('❌ Failed to submit score:', e)
+          // Save completion state locally
+          localStorage.setItem(`puzzle-completed-${puzzle.id}`, JSON.stringify({
+            solvedAt: new Date().toISOString(),
+            seconds
+          }))
+          setHasSaved(true)
+        } catch (e) {
+          console.error('❌ Failed to submit score:', e)
+        }
       }
     }
   }

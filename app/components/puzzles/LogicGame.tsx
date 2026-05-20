@@ -9,6 +9,25 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
   const [revealed, setRevealed] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [solved, setSolved] = useState(false)
+  const [hasSaved, setHasSaved] = useState(false)
+
+  // Restore from localStorage
+  useEffect(() => {
+    const storageKey = `puzzle-completed-${puzzle.id}`
+    const stored = localStorage.getItem(storageKey)
+    if (stored) {
+      try {
+        const { seconds: storedSeconds } = JSON.parse(stored)
+        setSeconds(storedSeconds)
+        setSolved(true)
+        setHasSaved(true)
+        setSelected(answer)
+        setRevealed(true)
+      } catch (e) {
+        console.error('Failed to parse stored puzzle state', e)
+      }
+    }
+  }, [puzzle.id, answer])
 
   useEffect(() => {
     if (solved) return
@@ -19,6 +38,7 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
   const isCorrect = selected === answer
 
   const handleSelect = async (opt: string) => {
+    if (revealed) return
     setSelected(opt)
     setRevealed(true)
     if (opt === answer && !solved) {
@@ -32,6 +52,12 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
             time_seconds: seconds
           })
         })
+        // Save to localStorage
+        localStorage.setItem(`puzzle-completed-${puzzle.id}`, JSON.stringify({
+          solvedAt: new Date().toISOString(),
+          seconds
+        }))
+        setHasSaved(true)
       } catch (e) {
         console.error('❌ Failed to submit score:', e)
       }

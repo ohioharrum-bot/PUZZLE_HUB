@@ -10,14 +10,38 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   const [isSelecting, setIsSelecting] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [solved, setSolved] = useState(false)
+  const [hasSaved, setHasSaved] = useState(false)
+
+  const getCell = (r: number, c: number) => `${r}-${c}`
+
+  // Restore from localStorage
+  useEffect(() => {
+    const storageKey = `puzzle-completed-${puzzle.id}`
+    const stored = localStorage.getItem(storageKey)
+    if (stored) {
+      try {
+        const { seconds: storedSeconds } = JSON.parse(stored)
+        setSeconds(storedSeconds)
+        setSolved(true)
+        setHasSaved(true)
+        setFound(words)
+        
+        const allCells = new Set<string>()
+        solution.forEach(sol => {
+          sol.positions.forEach(([r, c]) => allCells.add(getCell(r, c)))
+        })
+        setHighlighted(allCells)
+      } catch (e) {
+        console.error('Failed to parse stored puzzle state', e)
+      }
+    }
+  }, [puzzle.id, words, solution])
 
   useEffect(() => {
     if (solved) return
     const t = setInterval(() => setSeconds(s => s + 1), 1000)
     return () => clearInterval(t)
   }, [solved])
-
-  const getCell = (r: number, c: number) => `${r}-${c}`
 
   const startSelect = (r: number, c: number) => {
     if (solved) return
@@ -49,17 +73,25 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
         
         if (newFound.length === words.length) {
           setSolved(true)
-          try {
-            await fetch('/api/scores', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                puzzle_id: puzzle.id,
-                time_seconds: seconds
+          if (!hasSaved) {
+            try {
+              await fetch('/api/scores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  puzzle_id: puzzle.id,
+                  time_seconds: seconds
+                })
               })
-            })
-          } catch (e) {
-            console.error(e)
+              // Save completion state locally
+              localStorage.setItem(`puzzle-completed-${puzzle.id}`, JSON.stringify({
+                solvedAt: new Date().toISOString(),
+                seconds
+              }))
+              setHasSaved(true)
+            } catch (e) {
+              console.error('❌ Failed to submit score:', e)
+            }
           }
         }
         break
