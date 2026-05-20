@@ -1,8 +1,8 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { redirect } from 'next/navigation'
 import { formatTime } from '@/lib/utils'
 import PageMotion from '@/components/PageMotion'
 import { Score } from '@/types/puzzle'
+import GuestProgress from '@/components/GuestProgress'
 
 interface ScoreWithPuzzle extends Score {
   puzzles: {
@@ -16,7 +16,13 @@ export default async function ProfilePage() {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
 
-  if (!session) redirect('/auth/login')
+  if (!session) {
+    return (
+      <PageMotion>
+        <GuestProgress />
+      </PageMotion>
+    )
+  }
 
   const { data: profile } = await supabase
     .from('profiles')

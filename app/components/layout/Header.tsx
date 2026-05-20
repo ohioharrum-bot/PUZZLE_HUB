@@ -76,12 +76,18 @@ export default function Header() {
               </button>
             </div>
           ) : (
-            <Link
-              href="/auth/login"
-              className="rounded-full bg-black px-4 py-2 text-xs font-medium text-white transition hover:bg-black/80"
-            >
-              Sign In
-            </Link>
+            <>
+              <Link href="/profile" className="flex items-center gap-2 text-xs font-medium text-black/60 hover:text-black">
+                <UserIcon className="h-4 w-4" />
+                My Progress
+              </Link>
+              <Link
+                href="/auth/login"
+                className="rounded-full bg-black px-4 py-2 text-xs font-medium text-white transition hover:bg-black/80"
+              >
+                Sign In
+              </Link>
+            </>
           )}
         </div>
 
@@ -129,14 +135,24 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <Link
-                href="/auth/login"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
-              >
-                <UserIcon className="h-5 w-5 text-black/40" />
-                Sign In
-              </Link>
+              <>
+                <Link
+                  href="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+                >
+                  <UserIcon className="h-5 w-5 text-black/40" />
+                  My Progress
+                </Link>
+                <Link
+                  href="/auth/login"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+                >
+                  <UserIcon className="h-5 w-5 text-black/40" />
+                  Sign In
+                </Link>
+              </>
             )}
           </div>
         </nav>
