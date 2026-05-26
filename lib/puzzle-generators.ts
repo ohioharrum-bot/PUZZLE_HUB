@@ -64,9 +64,9 @@ const WORD_BANKS = {
   hard:   ['ALGORITHM', 'KEYBOARD', 'UNIVERSE', 'CHOCOLATE', 'ADVENTURE'],
 }
 
-export function generateWordSearch(difficulty: 'easy' | 'medium' | 'hard') {
+export function generateWordSearch(difficulty: 'easy' | 'medium' | 'hard', customWords?: string[]) {
   const size = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 12 : 15
-  const words = WORD_BANKS[difficulty]
+  const words = customWords || WORD_BANKS[difficulty]
   const grid: string[][] = Array(size).fill(null).map(() => Array(size).fill(''))
   const placed: { word: string; positions: [number,number][] }[] = []
 
