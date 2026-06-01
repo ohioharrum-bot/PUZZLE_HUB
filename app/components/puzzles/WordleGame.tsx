@@ -54,7 +54,7 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
       if (!hasSaved) {
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
-        if (!session) saveProgressLocally(puzzle.id, seconds, { guesses: newGuesses })
+        if (!session) saveProgressLocally(puzzle.id, seconds)
         
         await fetch('/api/scores', {
           method: 'POST',
