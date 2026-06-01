@@ -17,7 +17,7 @@ const robotoMono = Roboto_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'PuzzleHub – Free Online Puzzles',
+  title: 'Gizmopuzzle – Free Online Puzzles',
   description: 'Solve Sudoku, Word Search, Jigsaw, and Logic puzzles online for free.',
 }
 
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main className="mx-auto max-w-7xl px-4 py-5 md:px-6">{children}</main>
         <footer className="mx-auto mt-8 max-w-7xl border-t border-black/10 px-4 py-6 text-center text-xs text-black/45 md:px-6">
-          © {new Date().getFullYear()} PuzzleHub · All puzzles free to play
+          © {new Date().getFullYear()} Gizmopuzzle · All puzzles free to play
         </footer>
       </body>
     </html>

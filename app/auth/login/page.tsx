@@ -86,7 +86,7 @@ export default function LoginPage() {
             {isSignUp ? 'Create account' : 'Welcome back'}
           </h1>
           <p className="text-xs text-black/45">
-            {isSignUp ? 'Track your puzzles and climb the leaderboard' : 'Sign in to your PuzzleHub account'}
+            {isSignUp ? 'Track your puzzles and climb the leaderboard' : 'Sign in to your Gizmopuzzle account'}
           </p>
         </div>
 
