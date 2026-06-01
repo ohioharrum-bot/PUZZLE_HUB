@@ -16,6 +16,8 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
   const [seconds, setSeconds] = useState(0)
   const [hasSaved, setHasSaved] = useState(false)
   const [shake, setShake] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   // Timer
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
       try {
         const { seconds: storedSeconds, guesses: storedGuesses } = JSON.parse(stored)
         setSeconds(storedSeconds)
-        setGuesses(storedGuesses)
+        if (storedGuesses) setGuesses(storedGuesses)
         setSolved(true)
         setHasSaved(true)
       } catch (e) {
@@ -60,18 +62,18 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
         return
       }
     } catch (e) {
-      // Fallback if API is down: allow common word check logic or just allow it
       console.error('Dictionary API error:', e)
+      // On error, we'll allow the guess to proceed to not block gameplay
     }
 
-    const newGuesses = [...guesses, currentGuess.toLowerCase()]
+    const lowerGuess = currentGuess.toLowerCase()
+    const newGuesses = [...guesses, lowerGuess]
     setGuesses(newGuesses)
     setCurrentGuess('')
     setLoading(false)
 
-    if (currentGuess.toLowerCase() === solution.toLowerCase()) {
+    if (lowerGuess === solution.toLowerCase()) {
       setSolved(true)
-      // Save logic
       if (!hasSaved) {
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
@@ -90,7 +92,7 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
   }, [currentGuess, guesses, solved, failed, solution, puzzle.id, seconds, hasSaved, loading])
 
   const onKey = useCallback((key: string) => {
-    if (solved || failed) return
+    if (solved || failed || loading) return
     if (key === 'Enter') {
       if (currentGuess.length < WORD_LENGTH) {
         setShake(true)
@@ -103,7 +105,7 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
     } else if (/^[a-zA-Z]$/.test(key) && currentGuess.length < WORD_LENGTH) {
       setCurrentGuess(prev => prev + key.toUpperCase())
     }
-  }, [currentGuess, solved, failed, submitGuess])
+  }, [currentGuess, solved, failed, loading, submitGuess])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => onKey(e.key)
@@ -142,7 +144,6 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
         </div>
       </div>
 
-      {/* Wordle Grid */}
       <div className="relative w-full">
         {error && (
           <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
@@ -153,38 +154,38 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
         )}
         <div className="grid grid-rows-6 gap-2 w-full aspect-[5/6]">
           {[...Array(MAX_GUESSES)].map((_, i) => {
-          const guess = guesses[i] || (i === guesses.length ? currentGuess : '')
-          const isCurrent = i === guesses.length
-          const isSubmitted = i < guesses.length
+            const guess = guesses[i] || (i === guesses.length ? currentGuess : '')
+            const isCurrent = i === guesses.length
+            const isSubmitted = i < guesses.length
 
-          return (
-            <div key={i} className={`grid grid-cols-5 gap-2 ${isCurrent && shake ? 'animate-shake' : ''}`}>
-              {[...Array(WORD_LENGTH)].map((_, j) => {
-                const char = guess[j] || ''
-                const status = isSubmitted ? getStatus(guess, j) : ''
-                
-                return (
-                  <div
-                    key={j}
-                    className={`
-                      aspect-square flex items-center justify-center text-2xl font-black rounded-xl border-2 transition-all duration-500 text-black
-                      ${!isSubmitted ? 'border-black/10 bg-white' : ''}
-                      ${isSubmitted && status === 'correct' ? 'bg-green-500 border-green-600' : ''}
-                      ${isSubmitted && status === 'present' ? 'bg-yellow-500 border-yellow-600' : ''}
-                      ${isSubmitted && status === 'absent' ? 'bg-black/20 border-black/5 opacity-40' : ''}
-                      ${isCurrent && char ? 'border-black/30 scale-105' : ''}
-                    `}
-                  >
-                    {char}
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })}
+            return (
+              <div key={i} className={`grid grid-cols-5 gap-2 ${isCurrent && shake ? 'animate-shake' : ''}`}>
+                {[...Array(WORD_LENGTH)].map((_, j) => {
+                  const char = guess[j] || ''
+                  const status = isSubmitted ? getStatus(guess, j) : ''
+                  
+                  return (
+                    <div
+                      key={j}
+                      className={`
+                        aspect-square flex items-center justify-center text-2xl font-black rounded-xl border-2 transition-all duration-500 text-black
+                        ${!isSubmitted ? 'border-black/10 bg-white' : ''}
+                        ${isSubmitted && status === 'correct' ? 'bg-green-500 border-green-600' : ''}
+                        ${isSubmitted && status === 'present' ? 'bg-yellow-500 border-yellow-600' : ''}
+                        ${isSubmitted && status === 'absent' ? 'bg-black/20 border-black/5 opacity-40' : ''}
+                        ${isCurrent && char ? 'border-black/30 scale-105 shadow-sm' : ''}
+                      `}
+                    >
+                      {char}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Virtual Keyboard */}
       <div className="w-full space-y-2 mt-4">
         {[
           ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -198,9 +199,10 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
               return (
                 <button
                   key={key}
+                  disabled={loading}
                   onClick={() => onKey(key)}
                   className={`
-                    flex items-center justify-center rounded-lg font-bold text-xs sm:text-sm h-12 transition-all active:scale-95 text-black
+                    flex items-center justify-center rounded-lg font-bold text-xs sm:text-sm h-12 transition-all active:scale-95 text-black disabled:opacity-50
                     ${isSpecial ? 'px-3 sm:px-4' : 'flex-1'}
                     ${!status ? 'bg-white border border-black/10 hover:bg-black/5' : ''}
                     ${status === 'correct' ? 'bg-green-500 border-green-600' : ''}
@@ -216,7 +218,6 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
         ))}
       </div>
 
-      {/* Status Messages */}
       {(solved || failed) && (
         <div className={`w-full p-6 rounded-[28px] border-2 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-xl ${
           solved ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
