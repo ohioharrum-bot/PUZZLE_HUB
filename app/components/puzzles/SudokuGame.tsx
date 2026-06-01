@@ -16,12 +16,16 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
   const [seconds, setSeconds] = useState(0)
   const [saving, setSaving] = useState(false)
   const [hasSaved, setHasSaved] = useState(false)
+  const [pencilMode, setPencilMode] = useState(false)
+  const [candidates, setCandidates] = useState<Map<string, Set<number>>>(new Map())
 
   // 9x9 grid of refs for arrow key navigation
-  const cellRefs = useRef<(HTMLInputElement | null)[][]>(
+  const cellRefs = useRef<(HTMLDivElement | null)[][]>(
     Array(9).fill(null).map(() => Array(9).fill(null))
   )
 
+  // ... (Restore from localStorage and Timer effects omitted for brevity, but I will include them in the replace block to ensure context is correct)
+  
   // Restore from localStorage
   useEffect(() => {
     const storageKey = `puzzle-completed-${puzzle.id}`
@@ -79,25 +83,56 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [solved, hasSaved, puzzle.id, seconds])
 
+  const toggleCandidate = useCallback((r: number, c: number, num: number) => {
+    const key = `${r}-${c}`
+    setCandidates(prev => {
+      const newMap = new Map(prev)
+      const currentSet = new Set(newMap.get(key) || [])
+      if (currentSet.has(num)) {
+        currentSet.delete(num)
+      } else {
+        currentSet.add(num)
+      }
+      newMap.set(key, currentSet)
+      return newMap
+    })
+  }, [])
+
   // ── Cell input ─────────────────────────────────────────────
   const handleInput = useCallback((r: number, c: number, val: string) => {
     if (initialGrid[r][c] !== 0 || solved) return
     
     const num = parseInt(val.slice(-1)) || 0
+    
+    if (pencilMode && num !== 0) {
+      toggleCandidate(r, c, num)
+      return
+    }
+
     const newGrid = grid.map(row => [...row])
     newGrid[r][c] = num
     setGrid(newGrid)
 
+    // Clear candidates for this cell
+    setCandidates(prev => {
+      const newMap = new Map(prev)
+      newMap.delete(`${r}-${c}`)
+      return newMap
+    })
+
     const newErrors = new Set(errors)
-    if (num !== 0 && solution[r][c] !== num) newErrors.add(`${r}-${c}`)
-    else newErrors.delete(`${r}-${c}`)
+    if (num !== 0 && solution[r][c] !== num) {
+      if (puzzle.difficulty === 'easy') newErrors.add(`${r}-${c}`)
+    } else {
+      newErrors.delete(`${r}-${c}`)
+    }
     setErrors(newErrors)
 
     const complete = newGrid.every((row, ri) =>
       row.every((cell, ci) => cell === solution[ri][ci])
     )
     if (complete) setSolved(true)
-  }, [grid, errors, initialGrid, solution, solved])
+  }, [grid, errors, initialGrid, solution, solved, pencilMode, toggleCandidate, puzzle.difficulty])
 
   // ── Arrow key navigation ───────────────────────────────────
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -120,12 +155,15 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
       setSelected([nr, nc])
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
       handleInput(r, c, '0')
+    } else if (/^[1-9]$/.test(e.key)) {
+      handleInput(r, c, e.key)
     }
   }, [selected, handleInput])
 
   const reset = () => {
     setGrid(initialGrid.map(r => [...r]))
     setErrors(new Set())
+    setCandidates(new Map())
     setSolved(false)
     setSeconds(0)
   }
@@ -184,19 +222,15 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
               : 'border-b border-b-black/10'
 
             return (
-              <input
+              <div
                 key={`${r}-${c}`}
                 ref={el => { cellRefs.current[r][c] = el }}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={cell || ''}
-                readOnly={isInitial || solved}
+                tabIndex={isInitial || solved ? -1 : 0}
+                role="gridcell"
                 aria-label={`Row ${r + 1}, Column ${c + 1}`}
                 onFocus={() => setSelected([r, c])}
-                onChange={e => handleInput(r, c, e.target.value)}
                 className={[
-                  'h-10 w-10 sm:h-12 sm:w-12 text-center text-lg outline-none transition-colors',
+                  'relative h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center text-lg outline-none transition-colors select-none cursor-pointer',
                   borderR, borderB,
                   isSelected
                     ? 'bg-indigo-500 text-white font-bold'
@@ -205,11 +239,23 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                       : 'bg-white/70',
                   isInitial
                     ? 'font-bold text-black/80 cursor-default'
-                    : 'text-indigo-600 cursor-text',
+                    : 'text-indigo-600',
                   isError && !isSelected ? 'bg-red-100 text-red-600' : '',
                   solved ? 'bg-green-50 text-green-700' : '',
                 ].join(' ')}
-              />
+              >
+                {cell !== 0 ? (
+                  cell
+                ) : (
+                  <div className="grid grid-cols-3 grid-rows-3 h-full w-full p-0.5">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
+                      <div key={n} className="flex items-center justify-center text-[8px] leading-none text-indigo-400/80 font-medium">
+                        {candidates.get(`${r}-${c}`)?.has(n) ? n : ''}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )
           })
         )}
@@ -218,6 +264,16 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
       {/* Controls */}
       {!solved && (
         <div className="flex gap-2">
+          <button
+            onClick={() => setPencilMode(!pencilMode)}
+            className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
+              pencilMode 
+                ? 'bg-indigo-500 border-indigo-600 text-white shadow-inner' 
+                : 'bg-white/60 border-black/10 text-black/60 hover:bg-black/5'
+            }`}
+          >
+            {pencilMode ? '✏️ Pencil ON' : '✏️ Pencil OFF'}
+          </button>
           <button
             onClick={reset}
             className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-medium text-black/60 transition hover:bg-black/5"
