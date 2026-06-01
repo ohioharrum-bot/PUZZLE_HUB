@@ -137,11 +137,11 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
                   <div
                     key={j}
                     className={`
-                      aspect-square flex items-center justify-center text-2xl font-black rounded-xl border-2 transition-all duration-500
+                      aspect-square flex items-center justify-center text-2xl font-black rounded-xl border-2 transition-all duration-500 text-black
                       ${!isSubmitted ? 'border-black/10 bg-white' : ''}
-                      ${isSubmitted && status === 'correct' ? 'bg-green-500 border-green-600 text-white rotate-y-180' : ''}
-                      ${isSubmitted && status === 'present' ? 'bg-yellow-500 border-yellow-600 text-white rotate-y-180' : ''}
-                      ${isSubmitted && status === 'absent' ? 'bg-black/30 border-black/5 text-white/50' : ''}
+                      ${isSubmitted && status === 'correct' ? 'bg-green-500 border-green-600' : ''}
+                      ${isSubmitted && status === 'present' ? 'bg-yellow-500 border-yellow-600' : ''}
+                      ${isSubmitted && status === 'absent' ? 'bg-black/20 border-black/5 opacity-40' : ''}
                       ${isCurrent && char ? 'border-black/30 scale-105' : ''}
                     `}
                   >
@@ -170,12 +170,12 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
                   key={key}
                   onClick={() => onKey(key)}
                   className={`
-                    flex items-center justify-center rounded-lg font-bold text-xs sm:text-sm h-12 transition-all active:scale-95
+                    flex items-center justify-center rounded-lg font-bold text-xs sm:text-sm h-12 transition-all active:scale-95 text-black
                     ${isSpecial ? 'px-3 sm:px-4' : 'flex-1'}
-                    ${!status ? 'bg-white border border-black/10 text-black/70 hover:bg-black/5' : ''}
-                    ${status === 'correct' ? 'bg-green-500 text-white' : ''}
-                    ${status === 'present' ? 'bg-yellow-500 text-white' : ''}
-                    ${status === 'absent' ? 'bg-black/20 text-black/30' : ''}
+                    ${!status ? 'bg-white border border-black/10 hover:bg-black/5' : ''}
+                    ${status === 'correct' ? 'bg-green-500 border-green-600' : ''}
+                    ${status === 'present' ? 'bg-yellow-500 border-yellow-600' : ''}
+                    ${status === 'absent' ? 'bg-black/10 text-black/40' : ''}
                   `}
                 >
                   {key === 'Backspace' ? '←' : key}
