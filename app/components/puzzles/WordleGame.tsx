@@ -42,11 +42,32 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
   }, [puzzle.id])
 
   const submitGuess = useCallback(async () => {
-    if (currentGuess.length !== WORD_LENGTH || solved || failed) return
+    if (currentGuess.length !== WORD_LENGTH || solved || failed || loading) return
+
+    setLoading(true)
+    setError('')
+    
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${currentGuess.toLowerCase()}`)
+      if (!res.ok) {
+        setShake(true)
+        setError('Not a valid word')
+        setTimeout(() => {
+          setShake(false)
+          setError('')
+        }, 1500)
+        setLoading(false)
+        return
+      }
+    } catch (e) {
+      // Fallback if API is down: allow common word check logic or just allow it
+      console.error('Dictionary API error:', e)
+    }
 
     const newGuesses = [...guesses, currentGuess.toLowerCase()]
     setGuesses(newGuesses)
     setCurrentGuess('')
+    setLoading(false)
 
     if (currentGuess.toLowerCase() === solution.toLowerCase()) {
       setSolved(true)
@@ -66,7 +87,7 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
     } else if (newGuesses.length >= MAX_GUESSES) {
       setFailed(true)
     }
-  }, [currentGuess, guesses, solved, failed, solution, puzzle.id, seconds, hasSaved])
+  }, [currentGuess, guesses, solved, failed, solution, puzzle.id, seconds, hasSaved, loading])
 
   const onKey = useCallback((key: string) => {
     if (solved || failed) return
@@ -122,8 +143,16 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
       </div>
 
       {/* Wordle Grid */}
-      <div className="grid grid-rows-6 gap-2 w-full aspect-[5/6]">
-        {[...Array(MAX_GUESSES)].map((_, i) => {
+      <div className="relative w-full">
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <div className="bg-black/90 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xl animate-in fade-in zoom-in duration-200">
+              {error}
+            </div>
+          </div>
+        )}
+        <div className="grid grid-rows-6 gap-2 w-full aspect-[5/6]">
+          {[...Array(MAX_GUESSES)].map((_, i) => {
           const guess = guesses[i] || (i === guesses.length ? currentGuess : '')
           const isCurrent = i === guesses.length
           const isSubmitted = i < guesses.length
