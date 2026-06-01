@@ -100,11 +100,12 @@ export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
 
   const getKeyStatus = (char: string) => {
     let status = ''
+    const sol = solution.toLowerCase()
     guesses.forEach(guess => {
       guess.split('').forEach((letter, i) => {
         if (letter !== char) return
-        if (solution[i] === letter) status = 'correct'
-        else if (solution.includes(letter) && status !== 'correct') status = 'present'
+        if (sol[i] === letter) status = 'correct'
+        else if (sol.includes(letter) && status !== 'correct') status = 'present'
         else if (status !== 'correct' && status !== 'present') status = 'absent'
       })
     })

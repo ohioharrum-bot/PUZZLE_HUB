@@ -24,7 +24,7 @@ const PUZZLE_TYPES: Record<PuzzleType, { title: string; description: string }> =
     description: 'Piece together image puzzles at your own pace.',
   },
   wordle: {
-    title: 'Wordle',
+    title: 'Word Guesser',
     description: 'Guess the hidden 5-letter word in six tries.',
   },
 }
