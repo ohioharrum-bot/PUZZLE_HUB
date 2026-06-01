@@ -81,7 +81,7 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
       </div>
 
       <div className="bg-indigo-50 rounded-xl p-4">
-        <p className="text-gray-800 font-medium leading-relaxed">{question}</p>
+        <p className="text-slate-900 font-semibold leading-relaxed">{question}</p>
       </div>
 
       <div className="grid gap-3">
@@ -91,7 +91,7 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
             onClick={() => handleSelect(opt)}
             disabled={revealed}
             className={[
-              'text-left px-4 py-3 rounded-xl border-2 transition-all font-medium',
+              'text-left px-4 py-3 rounded-xl border-2 transition-all font-semibold text-slate-800',
               revealed && opt === answer ? 'border-green-500 bg-green-50 text-green-800' : '',
               revealed && opt === selected && opt !== answer ? 'border-red-400 bg-red-50 text-red-700' : '',
               !revealed ? 'border-gray-200 hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer' : '',

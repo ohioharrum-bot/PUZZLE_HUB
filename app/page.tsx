@@ -11,8 +11,11 @@ export const revalidate = 60
 export default async function HomePage() {
   const puzzles = await getPuzzles()
 
-  const daily = puzzles.filter(p => p.is_daily)
-  const byType = (type: string) => puzzles.filter(p => p.type === type)
+  const allDaily = puzzles.filter(p => p.is_daily)
+  const latestDailyDate = allDaily[0]?.daily_date
+  const daily = allDaily.filter(p => p.daily_date === latestDailyDate)
+  
+  const byType = (type: string) => puzzles.filter(p => p.type === type && !p.is_daily).slice(0, 4)
 
   return (
     <PageMotion>

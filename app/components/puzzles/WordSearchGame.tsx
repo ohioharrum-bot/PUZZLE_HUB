@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase'
 export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   const { grid, words, solution } = puzzle.puzzle_data as WordSearchPuzzleData
   const [found, setFound] = useState<string[]>([])
+  const [startPos, setStartPos] = useState<[number, number] | null>(null)
   const [selecting, setSelecting] = useState<[number,number][]>([])
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set())
   const [isSelecting, setIsSelecting] = useState(false)
@@ -48,20 +49,38 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   const startSelect = (r: number, c: number) => {
     if (solved) return
     setIsSelecting(true)
+    setStartPos([r, c])
     setSelecting([[r, c]])
   }
 
   const continueSelect = (r: number, c: number) => {
-    if (!isSelecting || solved) return
-    setSelecting(prev => {
-      if (prev.some(([pr, pc]) => pr === r && pc === c)) return prev
-      return [...prev, [r, c]]
-    })
+    if (!isSelecting || solved || !startPos) return
+    
+    const [sr, sc] = startPos
+    const dr = r - sr
+    const dc = c - sc
+    const absDr = Math.abs(dr)
+    const absDc = Math.abs(dc)
+
+    // Only allow horizontal, vertical, or 45-degree diagonal
+    if (dr === 0 || dc === 0 || absDr === absDc) {
+      const steps = Math.max(absDr, absDc)
+      const stepR = dr === 0 ? 0 : dr / absDr
+      const stepC = dc === 0 ? 0 : dc / absDc
+      
+      const newSelecting: [number, number][] = []
+      for (let i = 0; i <= steps; i++) {
+        newSelecting.push([sr + i * stepR, sc + i * stepC])
+      }
+      setSelecting(newSelecting)
+    }
   }
 
   const endSelect = async () => {
     if (!isSelecting || solved) return
     setIsSelecting(false)
+    setStartPos(null)
+    
     const selectedWord = selecting.map(([r, c]) => grid[r][c]).join('')
     const reversed = selectedWord.split('').reverse().join('')
 
@@ -149,7 +168,7 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                         'w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-mono font-bold cursor-pointer border border-gray-50 transition-colors',
                         isHighlighted ? 'bg-green-100 text-green-700' : '',
                         isSelecting_ ? 'bg-indigo-100 text-indigo-700' : '',
-                        !isHighlighted && !isSelecting_ ? 'hover:bg-gray-50 text-gray-700' : '',
+                        !isHighlighted && !isSelecting_ ? 'hover:bg-gray-50 text-slate-900' : '',
                       ].join(' ')}
                     >
                       {letter}

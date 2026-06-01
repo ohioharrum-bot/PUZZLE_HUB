@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid'
 import { generateSudoku, generateWordSearch, generateLogicPuzzle } from './puzzle-generators'
 import { generateAILogicPuzzle, generateAIWordSearchTheme } from './ai-generator'
-import { createServerSupabaseClient } from './supabase-server'
+import { createAdminClient } from './supabase-admin'
 import type { PuzzleType } from '@/types/puzzle'
 
 export async function generateAndStoreDailyPuzzles() {
-  const supabase = await createServerSupabaseClient()
+  const supabase = createAdminClient()
   const today = new Date().toISOString().split('T')[0]
   const types: PuzzleType[] = ['sudoku', 'wordsearch', 'logic']
   const results = []
@@ -37,26 +37,32 @@ export async function generateAndStoreDailyPuzzles() {
       } else if (type === 'wordsearch') {
         if (process.env.GROQ_API_KEY) {
           try {
+            console.log(`🤖 Generating AI WordSearch for ${today}...`)
             const aiTheme = await generateAIWordSearchTheme('medium')
             puzzleData = generateWordSearch('medium', aiTheme.words)
             title = `Daily Word Search: ${aiTheme.theme} - ${today}`
+            console.log('✅ AI WordSearch generated')
           } catch (e) {
-            console.error('AI WordSearch failed, falling back:', e)
+            console.error('❌ AI WordSearch failed, falling back:', e)
             puzzleData = generateWordSearch('medium')
           }
         } else {
+          console.warn('⚠️ GROQ_API_KEY missing, using local WordSearch bank')
           puzzleData = generateWordSearch('medium')
         }
       } else if (type === 'logic') {
         if (process.env.GROQ_API_KEY) {
           try {
+            console.log(`🤖 Generating AI Logic Puzzle for ${today}...`)
             puzzleData = await generateAILogicPuzzle('medium')
             title = `Daily Riddle - ${today}`
+            console.log('✅ AI Logic Puzzle generated')
           } catch (e) {
-            console.error('AI Logic failed, falling back:', e)
+            console.error('❌ AI Logic failed, falling back:', e)
             puzzleData = generateLogicPuzzle('medium')
           }
         } else {
+          console.warn('⚠️ GROQ_API_KEY missing, using local Logic bank')
           puzzleData = generateLogicPuzzle('medium')
         }
       }
