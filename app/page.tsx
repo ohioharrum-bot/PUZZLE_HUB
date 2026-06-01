@@ -25,7 +25,6 @@ export default async function HomePage() {
             <div className="border-b border-black/10 px-5 py-4">
               <div className="flex items-center justify-between text-xs text-black/45">
                 <span>Daily puzzle studio</span>
-                <span>Updated from Supabase</span>
               </div>
             </div>
             <div className="px-5 py-12 text-center md:px-12 md:py-16">
@@ -33,7 +32,7 @@ export default async function HomePage() {
                 Quiet puzzles for sharper everyday thinking
               </h1>
               <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-black/50 md:text-base">
-                Play Sudoku, word search, logic, and jigsaw puzzles from a focused dashboard built for quick sessions and calm problem solving.
+                Play Sudoku, word search, logic, wordle, and jigsaw puzzles from a focused dashboard built for quick sessions and calm problem solving.
               </p>
               <div className="mt-7 flex justify-center">
                 <Link href="/puzzles/sudoku" className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/15 transition hover:-translate-y-0.5">
@@ -42,7 +41,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="grid grid-cols-3 border-t border-black/10">
-              <Metric label="Types" value="4" />
+              <Metric label="Types" value="5" />
               <Metric label="Daily" value={String(daily.length)} />
               <Metric label="Source" value="DB" />
             </div>
@@ -64,6 +63,7 @@ export default async function HomePage() {
 
           <PuzzleSection title="Word Search" intro="Scan for hidden words across compact letter boards." puzzles={byType('wordsearch')} />
           <PuzzleSection title="Logic Puzzles" intro="Small reasoning challenges with clear answer feedback." puzzles={byType('logic')} />
+          <PuzzleSection title="Wordle" intro="Guess the hidden 5-letter word in six tries." puzzles={byType('wordle')} />
           <PuzzleSection title="Jigsaw" intro="Visual board puzzles with a minimal tile interface." puzzles={byType('jigsaw')} />
 
           <div className="motion-item">

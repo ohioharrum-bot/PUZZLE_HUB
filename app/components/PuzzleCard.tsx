@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Brain, Grid3X3, Puzzle as PuzzleIcon, Search, Users } from 'lucide-react'
+import { Brain, Grid3X3, Puzzle as PuzzleIcon, Search, Users, Type } from 'lucide-react'
 import { Puzzle } from '@/types/puzzle'
 
 const DIFFICULTY_COLOR = {
@@ -13,6 +13,7 @@ const TYPE_ICON = {
   wordsearch: Search,
   jigsaw: PuzzleIcon,
   logic: Brain,
+  wordle: Type,
 }
 
 export default function PuzzleCard({ puzzle }: { puzzle: Puzzle }) {

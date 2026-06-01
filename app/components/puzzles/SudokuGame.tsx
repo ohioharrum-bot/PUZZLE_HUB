@@ -263,41 +263,70 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
 
       {/* Controls */}
       {!solved && (
-        <div className="flex gap-2">
-          <button
-            onClick={() => setPencilMode(!pencilMode)}
-            className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
-              pencilMode 
-                ? 'bg-indigo-500 border-indigo-600 text-white shadow-inner' 
-                : 'bg-white/60 border-black/10 text-black/60 hover:bg-black/5'
-            }`}
-          >
-            {pencilMode ? '✏️ Pencil ON' : '✏️ Pencil OFF'}
-          </button>
-          <button
-            onClick={reset}
-            className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-medium text-black/60 transition hover:bg-black/5"
-          >
-            🔄 Reset
-          </button>
-          <button
-            onClick={() => {
-              const newErrors = new Set<string>()
-              grid.forEach((row, r) =>
-                row.forEach((cell, c) => {
-                  if (cell !== 0 && cell !== solution[r][c]) newErrors.add(`${r}-${c}`)
-                })
-              )
-              setErrors(newErrors)
-            }}
-            className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-medium text-black/60 transition hover:bg-black/5"
-          >
-            ✓ Check
-          </button>
+        <div className="flex flex-col items-center gap-6 w-full">
+          {/* Virtual Number Pad for Mobile */}
+          <div className="grid grid-cols-5 sm:flex sm:flex-wrap justify-center gap-2 w-full max-w-sm">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+              <button
+                key={num}
+                onClick={() => {
+                  if (selected) {
+                    handleInput(selected[0], selected[1], num.toString())
+                  }
+                }}
+                className="aspect-square sm:aspect-auto sm:h-12 sm:w-12 flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-lg font-bold text-black/70 transition hover:bg-black hover:text-white active:scale-90"
+              >
+                {num}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                if (selected) {
+                  handleInput(selected[0], selected[1], '0')
+                }
+              }}
+              className="aspect-square sm:aspect-auto sm:h-12 sm:px-4 flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-xs font-bold text-black/40 transition hover:bg-red-500 hover:text-white active:scale-90"
+            >
+              DEL
+            </button>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPencilMode(!pencilMode)}
+              className={`rounded-full border px-5 py-2.5 text-xs font-bold transition shadow-sm ${
+                pencilMode 
+                  ? 'bg-indigo-500 border-indigo-600 text-white shadow-inner' 
+                  : 'bg-white/80 border-black/10 text-black/60 hover:bg-black/5'
+              }`}
+            >
+              {pencilMode ? '✏️ Pencil ON' : '✏️ Pencil OFF'}
+            </button>
+            <button
+              onClick={reset}
+              className="rounded-full border border-black/10 bg-white/80 px-5 py-2.5 text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
+            >
+              🔄 Reset
+            </button>
+            <button
+              onClick={() => {
+                const newErrors = new Set<string>()
+                grid.forEach((row, r) =>
+                  row.forEach((cell, c) => {
+                    if (cell !== 0 && cell !== solution[r][c]) newErrors.add(`${r}-${c}`)
+                  })
+                )
+                setErrors(newErrors)
+              }}
+              className="rounded-full border border-black/10 bg-white/80 px-5 py-2.5 text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
+            >
+              ✓ Check
+            </button>
+          </div>
         </div>
       )}
 
-      <p className="text-xs text-black/30">Use arrow keys to navigate between cells</p>
+      <p className="text-[10px] text-black/30 font-medium uppercase tracking-wider">Tap a cell then a number to fill</p>
     </div>
   )
 }

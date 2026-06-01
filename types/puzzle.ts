@@ -1,5 +1,9 @@
-export type PuzzleType = 'sudoku' | 'wordsearch' | 'jigsaw' | 'logic'
+export type PuzzleType = 'sudoku' | 'wordsearch' | 'jigsaw' | 'logic' | 'wordle'
 export type Difficulty = 'easy' | 'medium' | 'hard'
+
+export type WordlePuzzleData = {
+  solution: string
+}
 
 export type SudokuPuzzleData = {
   puzzle: number[][]

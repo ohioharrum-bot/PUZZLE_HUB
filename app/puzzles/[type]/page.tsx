@@ -23,6 +23,10 @@ const PUZZLE_TYPES: Record<PuzzleType, { title: string; description: string }> =
     title: 'Jigsaw',
     description: 'Piece together image puzzles at your own pace.',
   },
+  wordle: {
+    title: 'Wordle',
+    description: 'Guess the hidden 5-letter word in six tries.',
+  },
 }
 
 export const revalidate = 60

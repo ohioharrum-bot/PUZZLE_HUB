@@ -1,10 +1,17 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+dotenv.config();
+
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import ws from 'ws';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+console.log('Environment Check:');
+console.log('- URL present:', !!supabaseUrl);
+console.log('- Key present:', !!supabaseKey);
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase environment variables');
@@ -122,6 +129,12 @@ const JIGSAW_SAMPLES = [
   { title: "Autumn Forest", url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80", pieces: 16 }
 ];
 
+const WORDLE_SAMPLES = [
+  { title: "Ocean Mystery", difficulty: "easy", solution: "WATER" },
+  { title: "Tech Term", difficulty: "medium", solution: "PIXEL" },
+  { title: "Abstract Concept", difficulty: "hard", solution: "CHAOS" }
+];
+
 async function seed() {
   console.log('🚀 Starting puzzle seed...');
   const newPuzzles = [];
@@ -179,6 +192,20 @@ async function seed() {
       puzzle_data: {
         image_url: j.url,
         pieces: j.pieces
+      },
+      is_daily: false,
+      play_count: 0
+    });
+  });
+
+  WORDLE_SAMPLES.forEach(w => {
+    newPuzzles.push({
+      id: uuidv4(),
+      title: w.title,
+      type: 'wordle',
+      difficulty: w.difficulty,
+      puzzle_data: {
+        solution: w.solution
       },
       is_daily: false,
       play_count: 0

@@ -129,16 +129,24 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   const fmt = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4 text-sm text-gray-600">
-        <span>Time {fmt(seconds)}</span>
-        <span className="capitalize px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">{puzzle.difficulty}</span>
+    <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-3">
+          <span className="font-mono font-semibold text-black/70 bg-white/60 px-3 py-1 rounded-full border border-black/5 shadow-sm">{fmt(seconds)}</span>
+          <span className="capitalize px-3 py-1 rounded-full border border-black/10 bg-white/60 text-xs font-medium text-black/50">{puzzle.difficulty}</span>
+        </div>
+        {solved && (
+          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+            ✓ Solved!
+          </span>
+        )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full overflow-x-auto pb-4 lg:pb-0">
+      <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+        {/* Grid Container */}
+        <div className="w-full flex justify-center lg:justify-start overflow-x-auto pb-4 scrollbar-hide">
           <div
-            className="select-none inline-block min-w-max border-2 border-gray-200 rounded-2xl overflow-hidden shadow-sm bg-white"
+            className="select-none inline-block border-2 border-black/10 rounded-2xl overflow-hidden shadow-sm bg-white touch-none"
             onMouseLeave={endSelect}
           >
             {grid.map((row: string[], r: number) => (
@@ -153,22 +161,30 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                       onMouseDown={() => startSelect(r, c)}
                       onMouseEnter={() => continueSelect(r, c)}
                       onMouseUp={endSelect}
-                      onTouchStart={() => startSelect(r, c)}
+                      onTouchStart={(e) => {
+                        e.preventDefault()
+                        startSelect(r, c)
+                      }}
                       onTouchMove={(e) => {
                         const touch = e.touches[0]
                         const el = document.elementFromPoint(touch.clientX, touch.clientY)
-                        if (el && el.getAttribute('data-r')) {
-                          continueSelect(parseInt(el.getAttribute('data-r')!), parseInt(el.getAttribute('data-c')!))
+                        const rAttr = el?.getAttribute('data-r')
+                        const cAttr = el?.getAttribute('data-c')
+                        if (rAttr !== null && cAttr !== null && rAttr !== undefined && cAttr !== undefined) {
+                          continueSelect(parseInt(rAttr), parseInt(cAttr))
                         }
                       }}
-                      onTouchEnd={endSelect}
+                      onTouchEnd={(e) => {
+                        e.preventDefault()
+                        endSelect()
+                      }}
                       data-r={r}
                       data-c={c}
                       className={[
-                        'w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-mono font-bold cursor-pointer border border-gray-50 transition-colors',
+                        'w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-mono font-bold cursor-pointer border border-black/[0.03] transition-all touch-none',
                         isHighlighted ? 'bg-green-100 text-green-700' : '',
-                        isSelecting_ ? 'bg-indigo-100 text-indigo-700' : '',
-                        !isHighlighted && !isSelecting_ ? 'hover:bg-gray-50 text-slate-900' : '',
+                        isSelecting_ ? 'bg-indigo-500 text-white z-10 scale-105 rounded-sm shadow-md' : '',
+                        !isHighlighted && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
                       ].join(' ')}
                     >
                       {letter}
@@ -180,32 +196,35 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
           </div>
         </div>
 
-        <div className="bg-white border border-black/10 rounded-2xl p-5 w-full lg:max-w-[280px] shadow-sm backdrop-blur">
-          <h3 className="font-semibold text-black mb-4 flex items-center justify-between">
-            <span>Word List</span>
-            <span className="text-xs font-normal text-black/40">{found.length}/{words.length} found</span>
+        {/* Word List Container */}
+        <div className="bg-white/80 border border-black/10 rounded-[28px] p-6 w-full lg:max-w-[300px] shadow-sm backdrop-blur-md">
+          <h3 className="font-bold text-black mb-4 flex items-center justify-between">
+            <span className="text-lg tracking-tight">Word List</span>
+            <span className="text-xs font-medium bg-black/5 px-2 py-1 rounded-full text-black/40">{found.length}/{words.length}</span>
           </h3>
           <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
             {words.map((word: string) => (
               <div 
                 key={word} 
-                className={`text-xs sm:text-sm font-mono p-2 rounded-lg border transition-all ${
+                className={`text-xs sm:text-sm font-mono p-2.5 rounded-xl border-2 transition-all flex items-center justify-center lg:justify-start ${
                   found.includes(word) 
-                  ? 'bg-green-50 border-green-200 text-green-700 line-through opacity-60' 
-                  : 'bg-gray-50 border-gray-100 text-gray-600'
+                  ? 'bg-green-50 border-green-200 text-green-700 line-through opacity-50' 
+                  : 'bg-white border-black/5 text-black/70 shadow-sm'
                 }`}
               >
                 {word}
               </div>
             ))}
           </div>
-          {found.length === words.length && (
-            <div className="mt-4 p-3 bg-green-500 text-white rounded-xl text-center font-bold text-sm animate-bounce">
-              Puzzle Complete in {fmt(seconds)}!
+          {solved && (
+            <div className="mt-6 p-4 bg-green-500 text-white rounded-[20px] text-center font-bold text-sm shadow-lg shadow-green-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              🎉 Puzzle Complete!
+              <div className="text-xs font-normal opacity-90 mt-1">Found all {words.length} words in {fmt(seconds)}</div>
             </div>
           )}
         </div>
       </div>
+      <p className="text-xs text-black/30 text-center lg:text-left">Drag over letters to select a word</p>
     </div>
   )
 }

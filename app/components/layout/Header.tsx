@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Brain, Hash, Puzzle, Search, Menu, X, User as UserIcon } from 'lucide-react'
+import { Brain, Hash, Puzzle, Search, Menu, X, User as UserIcon, Type } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
@@ -34,6 +34,7 @@ export default function Header() {
   const navLinks = [
     { href: '/puzzles/sudoku', icon: Hash, label: 'Sudoku' },
     { href: '/puzzles/wordsearch', icon: Search, label: 'Word Search' },
+    { href: '/puzzles/wordle', icon: Type, label: 'Wordle' },
     { href: '/puzzles/jigsaw', icon: Puzzle, label: 'Jigsaw' },
     { href: '/puzzles/logic', icon: Brain, label: 'Logic' },
   ]
