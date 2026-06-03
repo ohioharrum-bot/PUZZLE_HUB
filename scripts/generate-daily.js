@@ -109,6 +109,29 @@ async function generateAIRiddle() {
   }
 }
 
+async function generateAIWord() {
+  if (!groq) return null;
+  try {
+    console.log('🤖 AI Word Guesser generation...');
+    const prompt = 'Provide a common 5-letter word and a theme hint. JSON: { "word": "...", "hint": "..." }';
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.1-8b-instant',
+      response_format: { type: 'json_object' },
+    });
+    return JSON.parse(completion.choices[0].message.content);
+  } catch (e) {
+    console.error('❌ AI Word failed:', e.message);
+    return null;
+  }
+}
+
+const JIGSAW_IMAGES = [
+  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80"
+];
+
 // --- RUNNER ---
 
 async function run() {
@@ -163,6 +186,32 @@ async function run() {
       hint: "Music", 
       options: ["Piano", "Map", "Whisper", "Wind"] 
     },
+    is_daily: true,
+    daily_date: today,
+    play_count: 0
+  });
+
+  // 4. Word Guesser
+  const aiWord = await generateAIWord();
+  puzzles.push({
+    id: uuidv4(),
+    title: aiWord ? `Daily Word Guesser: ${aiWord.hint} - ${today}` : `Daily Word Guesser - ${today}`,
+    type: 'wordle',
+    difficulty: 'medium',
+    puzzle_data: { solution: aiWord ? aiWord.word.toUpperCase() : 'CLOUD' },
+    is_daily: true,
+    daily_date: today,
+    play_count: 0
+  });
+
+  // 5. Jigsaw
+  const imageUrl = JIGSAW_IMAGES[Math.floor(Math.random() * JIGSAW_IMAGES.length)];
+  puzzles.push({
+    id: uuidv4(),
+    title: `Daily Jigsaw - ${today}`,
+    type: 'jigsaw',
+    difficulty: 'medium',
+    puzzle_data: { image_url: imageUrl, pieces: 24 },
     is_daily: true,
     daily_date: today,
     play_count: 0

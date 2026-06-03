@@ -1,13 +1,21 @@
 import { v4 as uuidv4 } from 'uuid'
 import { generateSudoku, generateWordSearch, generateLogicPuzzle } from './puzzle-generators'
-import { generateAILogicPuzzle, generateAIWordSearchTheme } from './ai-generator'
+import { generateAILogicPuzzle, generateAIWordSearchTheme, generateAIWordGuesser } from './ai-generator'
 import { createAdminClient } from './supabase-admin'
 import type { PuzzleType } from '@/types/puzzle'
+
+const JIGSAW_IMAGES = [
+  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80"
+]
 
 export async function generateAndStoreDailyPuzzles() {
   const supabase = createAdminClient()
   const today = new Date().toISOString().split('T')[0]
-  const types: PuzzleType[] = ['sudoku', 'wordsearch', 'logic']
+  const types: PuzzleType[] = ['sudoku', 'wordsearch', 'logic', 'wordle', 'jigsaw']
   const results = []
 
   for (const type of types) {
@@ -27,7 +35,7 @@ export async function generateAndStoreDailyPuzzles() {
 
     let puzzleData: any
     let solutionData: any = null
-    let title = `Daily ${type.charAt(0).toUpperCase() + type.slice(1)} - ${today}`
+    let title = `Daily ${type === 'wordle' ? 'Word Guesser' : type.replace('-', ' ').charAt(0).toUpperCase() + type.replace('-', ' ').slice(1)} - ${today}`
 
     try {
       if (type === 'sudoku') {
@@ -65,6 +73,26 @@ export async function generateAndStoreDailyPuzzles() {
           console.warn('⚠️ GROQ_API_KEY missing, using local Logic bank')
           puzzleData = generateLogicPuzzle('medium')
         }
+      } else if (type === 'wordle') {
+        if (process.env.GROQ_API_KEY) {
+          try {
+            console.log(`🤖 Generating AI Word Guesser for ${today}...`)
+            const aiWord = await generateAIWordGuesser('medium')
+            puzzleData = { solution: aiWord.word }
+            title = `Daily Word Guesser: ${aiWord.theme_hint || '5-Letter Word'} - ${today}`
+            console.log('✅ AI Word Guesser generated')
+          } catch (e) {
+            console.error('❌ AI Word Guesser failed, falling back:', e)
+            puzzleData = { solution: 'PUZZLE' }
+          }
+        } else {
+          puzzleData = { solution: 'PUZZLE' }
+        }
+      }
+ else if (type === 'jigsaw') {
+        const imageUrl = JIGSAW_IMAGES[Math.floor(Math.random() * JIGSAW_IMAGES.length)]
+        puzzleData = { image_url: imageUrl, pieces: 24 }
+        title = `Daily Jigsaw - ${today}`
       }
 
       const newPuzzle = {

@@ -56,3 +56,25 @@ export async function generateAIWordSearchTheme(difficulty: string) {
 
   return JSON.parse(chatCompletion.choices[0].message.content || '{}')
 }
+
+export async function generateAIWordGuesser(difficulty: string) {
+  const groq = getGroqClient()
+  if (!groq) throw new Error('GROQ_API_KEY is missing')
+
+  const prompt = `Provide a single common 5-letter English word for a word guessing game.
+  Difficulty: ${difficulty} (easy: very common, medium: common, hard: slightly more challenging but still common)
+  Format: JSON with the following structure:
+  {
+    "word": "FIVE1",
+    "theme_hint": "A small hint about the word theme"
+  }
+  Ensure the word is exactly 5 letters long and uppercase.`
+
+  const chatCompletion = await groq.chat.completions.create({
+    messages: [{ role: 'user', content: prompt }],
+    model: 'llama-3.1-8b-instant',
+    response_format: { type: 'json_object' },
+  })
+
+  return JSON.parse(chatCompletion.choices[0].message.content || '{}')
+}

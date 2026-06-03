@@ -6,7 +6,7 @@ import { getPuzzles } from '@/lib/puzzle-data'
 import type { Puzzle, PuzzleType } from '@/types/puzzle'
 import { notFound } from 'next/navigation'
 
-const PUZZLE_TYPES: Record<PuzzleType, { title: string; description: string }> = {
+const PUZZLE_TYPES: Record<string, { title: string; description: string }> = {
   sudoku: {
     title: 'Sudoku',
     description: 'Fill each row, column, and box with the numbers 1 through 9.',
@@ -23,7 +23,11 @@ const PUZZLE_TYPES: Record<PuzzleType, { title: string; description: string }> =
     title: 'Jigsaw',
     description: 'Piece together image puzzles at your own pace.',
   },
-  wordle: {
+  'word-guesser': {
+    title: 'Word Guesser',
+    description: 'Guess the hidden 5-letter word in six tries.',
+  },
+  'wordle': {
     title: 'Word Guesser',
     description: 'Guess the hidden 5-letter word in six tries.',
   },
@@ -33,10 +37,11 @@ export const revalidate = 60
 
 export default async function PuzzleTypePage({ params }: { params: Promise<{ type: string }> }) {
   const { type } = await params
+  const mappedType = type === 'word-guesser' ? 'wordle' : type
 
   if (!isPuzzleType(type)) notFound()
 
-  const puzzles = await getPuzzles({ type })
+  const puzzles = await getPuzzles({ type: mappedType as PuzzleType })
   const meta = PUZZLE_TYPES[type]
 
   return (
@@ -77,6 +82,6 @@ export default async function PuzzleTypePage({ params }: { params: Promise<{ typ
   )
 }
 
-function isPuzzleType(type: string): type is PuzzleType {
+function isPuzzleType(type: string): boolean {
   return type in PUZZLE_TYPES
 }

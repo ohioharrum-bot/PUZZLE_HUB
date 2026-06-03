@@ -1,7 +1,7 @@
 export type PuzzleType = 'sudoku' | 'wordsearch' | 'jigsaw' | 'logic' | 'wordle'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 
-export type WordlePuzzleData = {
+export type WordGuesserPuzzleData = {
   solution: string
 }
 
@@ -28,7 +28,7 @@ export type JigsawPuzzleData = {
   pieces?: number
 }
 
-export type PuzzleData = SudokuPuzzleData | WordSearchPuzzleData | LogicPuzzleData | JigsawPuzzleData
+export type PuzzleData = SudokuPuzzleData | WordSearchPuzzleData | LogicPuzzleData | JigsawPuzzleData | WordGuesserPuzzleData
 
 export interface Puzzle {
   id: string

@@ -202,7 +202,7 @@ async function seed() {
     newPuzzles.push({
       id: uuidv4(),
       title: w.title,
-      type: 'wordle',
+      type: 'word-guesser',
       difficulty: w.difficulty,
       puzzle_data: {
         solution: w.solution

@@ -18,9 +18,10 @@ const TYPE_ICON = {
 
 export default function PuzzleCard({ puzzle }: { puzzle: Puzzle }) {
   const Icon = TYPE_ICON[puzzle.type]
+  const displayType = puzzle.type === 'wordle' ? 'word-guesser' : puzzle.type
 
   return (
-    <Link href={`/puzzles/${puzzle.type}/${puzzle.id}`} className="group block h-full">
+    <Link href={`/puzzles/${displayType}/${puzzle.id}`} className="group block h-full">
       <div className="h-full cursor-pointer rounded-[24px] border border-black/10 bg-white/70 p-5 shadow-sm backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-black/10">
         <div className="mb-5 flex items-start justify-between">
           <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#dff3ff] text-black ring-1 ring-black/5 transition group-hover:scale-105">
@@ -33,7 +34,9 @@ export default function PuzzleCard({ puzzle }: { puzzle: Puzzle }) {
           )}
         </div>
         <h3 className="mb-1 text-lg font-semibold leading-tight text-black">{puzzle.title}</h3>
-        <p className="text-xs capitalize text-black/45">{puzzle.type.replace('wordsearch', 'word search')}</p>
+        <p className="text-xs capitalize text-black/45">
+          {puzzle.type === 'wordle' ? 'word guesser' : puzzle.type.replace('wordsearch', 'word search')}
+        </p>
         <div className="mt-5 flex items-center gap-2">
           <span className={`rounded-full px-3 py-1 text-[11px] font-semibold capitalize ${DIFFICULTY_COLOR[puzzle.difficulty]}`}>
             {puzzle.difficulty}

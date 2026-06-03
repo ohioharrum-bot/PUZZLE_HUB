@@ -34,7 +34,7 @@ export default function Header() {
   const navLinks = [
     { href: '/puzzles/sudoku', icon: Hash, label: 'Sudoku' },
     { href: '/puzzles/wordsearch', icon: Search, label: 'Word Search' },
-    { href: '/puzzles/wordle', icon: Type, label: 'Word Guesser' },
+    { href: '/puzzles/word-guesser', icon: Type, label: 'Word Guesser' },
     { href: '/puzzles/jigsaw', icon: Puzzle, label: 'Jigsaw' },
     { href: '/puzzles/logic', icon: Brain, label: 'Logic' },
   ]

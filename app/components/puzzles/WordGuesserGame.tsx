@@ -1,14 +1,14 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { Puzzle, WordlePuzzleData } from '@/types/puzzle'
+import { Puzzle, WordGuesserPuzzleData } from '@/types/puzzle'
 import { saveProgressLocally, formatTime } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
 
 const MAX_GUESSES = 6
 const WORD_LENGTH = 5
 
-export default function WordleGame({ puzzle }: { puzzle: Puzzle }) {
-  const { solution } = puzzle.puzzle_data as WordlePuzzleData
+export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
+  const { solution } = puzzle.puzzle_data as WordGuesserPuzzleData
   const [guesses, setGuesses] = useState<string[]>([])
   const [currentGuess, setCurrentGuess] = useState('')
   const [solved, setSolved] = useState(false)
