@@ -59,14 +59,37 @@ function removeCells(solution: number[][], count: number): number[][] {
 
 // ── Word Search Generator ──────────────────────────────────────
 const WORD_BANKS = {
-  easy:   ['CAT', 'DOG', 'SUN', 'MOON', 'STAR', 'FISH', 'BIRD', 'TREE'],
-  medium: ['PYTHON', 'ROCKET', 'PLANET', 'BRIDGE', 'CASTLE', 'GARDEN'],
-  hard:   ['ALGORITHM', 'KEYBOARD', 'UNIVERSE', 'CHOCOLATE', 'ADVENTURE'],
+  easy: [
+    ['CAT', 'DOG', 'BIRD', 'FISH', 'FROG', 'LION', 'TIGER', 'BEAR', 'WOLF', 'DUCK', 'DEER', 'GOAT', 'LAMB', 'PIG'],
+    ['SUN', 'MOON', 'STAR', 'SKY', 'RAIN', 'SNOW', 'WIND', 'CLOUD', 'HEAT', 'COLD', 'MIST', 'FOG', 'STORM'],
+    ['RED', 'BLUE', 'GOLD', 'PINK', 'GREY', 'TEAL', 'ROSE', 'LIME', 'NAVY', 'AQUA', 'JADE', 'PLUM', 'RUBY']
+  ],
+  medium: [
+    ['PYTHON', 'JAVA', 'KOTLIN', 'SWIFT', 'RUST', 'RUBY', 'GO', 'PHP', 'HTML', 'CSS', 'REACT', 'NODE', 'SQL', 'DOCKER', 'LINUX'],
+    ['ROCKET', 'PLANET', 'GALAXY', 'COMET', 'ORBIT', 'SOLAR', 'NASA', 'SPACE', 'METEOR', 'ASTRO', 'COSMOS', 'HUBBLE', 'LUNAR', 'VENUS', 'MARS'],
+    ['COFFEE', 'TEA', 'LATTE', 'JUICE', 'WATER', 'MILK', 'SODA', 'CHAI', 'MOCHA', 'BREW', 'MATCHA', 'SHAKE', 'SMOOTHIE', 'COCOA']
+  ],
+  hard: [
+    ['ALGORITHM', 'DATABASE', 'FRONTEND', 'BACKEND', 'NETWORK', 'SECURITY', 'ENCRYPTION', 'FRAMEWORK', 'INTERFACE', 'PROTOCOL', 'COMPILER'],
+    ['UNIVERSE', 'ASTRONOMY', 'TELESCOPE', 'ASTEROID', 'NEBULA', 'COSMOS', 'QUASAR', 'GRAVITY', 'ECLIPSE', 'STARLIGHT', 'INFINITY'],
+    ['ADVENTURE', 'MOUNTAIN', 'OCEAN', 'FOREST', 'DESERT', 'ISLAND', 'VOLCANO', 'CANYON', 'GLACIER', 'SAVANNA', 'PLATEAU', 'VALLEY']
+  ],
 }
 
 export function generateWordSearch(difficulty: 'easy' | 'medium' | 'hard', customWords?: string[]) {
   const size = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 12 : 15
-  const words = customWords || WORD_BANKS[difficulty]
+  
+  let words: string[]
+  if (customWords) {
+    words = customWords
+  } else {
+    const banks = WORD_BANKS[difficulty]
+    const selectedBank = banks[Math.floor(Math.random() * banks.length)]
+    // Pick 6-10 words depending on difficulty
+    const count = difficulty === 'easy' ? 6 : difficulty === 'medium' ? 7 : 8
+    words = [...selectedBank].sort(() => Math.random() - 0.5).slice(0, count)
+  }
+
   const grid: string[][] = Array(size).fill(null).map(() => Array(size).fill(''))
   const placed: { word: string; positions: [number,number][] }[] = []
 

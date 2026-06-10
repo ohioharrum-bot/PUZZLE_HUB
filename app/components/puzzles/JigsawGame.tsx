@@ -31,9 +31,14 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
     
     const storageKey = `puzzle-completed-${puzzle.id}`
     const stored = localStorage.getItem(storageKey)
-    if (stored) {
+    
+    if (puzzle.completed || stored) {
       try {
-        const { seconds: storedSeconds } = JSON.parse(stored)
+        let storedSeconds = 0
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          storedSeconds = parsed.seconds || 0
+        }
         setSeconds(storedSeconds)
         setSolved(true)
         setHasSaved(true)
@@ -45,7 +50,7 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
     }
 
     setPositions(shuffle(Array.from({ length: piecesCount }, (_, i) => i)))
-  }, [puzzle.id, piecesCount])
+  }, [puzzle.id, puzzle.completed, piecesCount])
 
   useEffect(() => {
     if (solved) return

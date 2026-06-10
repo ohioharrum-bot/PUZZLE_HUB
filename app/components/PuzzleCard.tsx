@@ -27,11 +27,18 @@ export default function PuzzleCard({ puzzle }: { puzzle: Puzzle }) {
           <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#dff3ff] text-black ring-1 ring-black/5 transition group-hover:scale-105">
             <Icon className="h-5 w-5" />
           </span>
-          {puzzle.is_daily && (
-            <span className="rounded-full bg-black px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
-              Daily
-            </span>
-          )}
+          <div className="flex gap-1.5">
+            {puzzle.completed && (
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                ✓
+              </span>
+            )}
+            {puzzle.is_daily && (
+              <span className="rounded-full bg-black px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-sm">
+                Daily
+              </span>
+            )}
+          </div>
         </div>
         <h3 className="mb-1 text-lg font-semibold leading-tight text-black">{puzzle.title}</h3>
         <p className="text-xs capitalize text-black/45">

@@ -26,22 +26,33 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
     return () => clearInterval(t)
   }, [solved, failed])
 
-  // Restore from localStorage
+  // Restore from localStorage or DB
   useEffect(() => {
     const storageKey = `puzzle-completed-${puzzle.id}`
     const stored = localStorage.getItem(storageKey)
-    if (stored) {
+    if (puzzle.completed || stored) {
       try {
-        const { seconds: storedSeconds, guesses: storedGuesses } = JSON.parse(stored)
+        let storedSeconds = 0
+        let storedGuesses = []
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          storedSeconds = parsed.seconds || 0
+          storedGuesses = parsed.guesses || []
+        }
         setSeconds(storedSeconds)
-        if (storedGuesses) setGuesses(storedGuesses)
+        if (storedGuesses.length > 0) {
+          setGuesses(storedGuesses)
+        } else if (puzzle.completed) {
+          // If completed in DB but no local guesses, at least show it as solved
+          setGuesses([solution.toLowerCase()])
+        }
         setSolved(true)
         setHasSaved(true)
       } catch (e) {
         console.error('Failed to parse stored puzzle state', e)
       }
     }
-  }, [puzzle.id])
+  }, [puzzle.id, puzzle.completed, solution])
 
   const submitGuess = useCallback(async () => {
     if (currentGuess.length !== WORD_LENGTH || solved || failed || loading) return
@@ -114,22 +125,48 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
   }, [onKey])
 
   const getStatus = (guess: string, index: number) => {
-    const char = guess[index]
-    const solArr = solution.toLowerCase().split('')
-    if (solArr[index] === char) return 'correct'
-    if (solArr.includes(char)) return 'present'
+    const char = guess[index].toLowerCase()
+    const sol = solution.toLowerCase()
+    const guessLower = guess.toLowerCase()
+    
+    // 1. Correct spot
+    if (sol[index] === char) return 'correct'
+    
+    // 2. Present but wrong spot (with consumption logic)
+    // Count how many times this char appears in the solution
+    let solCount = 0
+    for (let i = 0; i < sol.length; i++) {
+      if (sol[i] === char) solCount++
+    }
+    
+    // Count how many times this char is already marked 'correct' in the guess
+    let correctCount = 0
+    for (let i = 0; i < guessLower.length; i++) {
+      if (guessLower[i] === char && sol[i] === char) correctCount++
+    }
+    
+    // Count how many times this char appeared earlier in the guess (that were not 'correct')
+    let earlierPresentCount = 0
+    for (let i = 0; i < index; i++) {
+      if (guessLower[i] === char && sol[i] !== char) earlierPresentCount++
+    }
+    
+    if (sol.includes(char) && (earlierPresentCount < (solCount - correctCount))) {
+      return 'present'
+    }
+    
     return 'absent'
   }
 
   const getKeyStatus = (char: string) => {
     let status = ''
-    const sol = solution.toLowerCase()
     guesses.forEach(guess => {
       guess.split('').forEach((letter, i) => {
         if (letter !== char) return
-        if (sol[i] === letter) status = 'correct'
-        else if (sol.includes(letter) && status !== 'correct') status = 'present'
-        else if (status !== 'correct' && status !== 'present') status = 'absent'
+        const currentStatus = getStatus(guess, i)
+        if (currentStatus === 'correct') status = 'correct'
+        else if (currentStatus === 'present' && status !== 'correct') status = 'present'
+        else if (currentStatus === 'absent' && status !== 'correct' && status !== 'present') status = 'absent'
       })
     })
     return status

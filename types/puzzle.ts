@@ -42,6 +42,7 @@ export interface Puzzle {
   daily_date?: string
   play_count: number
   created_at: string
+  completed?: boolean
 }
 
 export interface Score {

@@ -26,13 +26,18 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
 
   // ... (Restore from localStorage and Timer effects omitted for brevity, but I will include them in the replace block to ensure context is correct)
   
-  // Restore from localStorage
+  // Restore from localStorage or DB
   useEffect(() => {
     const storageKey = `puzzle-completed-${puzzle.id}`
     const stored = localStorage.getItem(storageKey)
-    if (stored) {
+    
+    if (puzzle.completed || stored) {
       try {
-        const { seconds: storedSeconds } = JSON.parse(stored)
+        let storedSeconds = 0
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          storedSeconds = parsed.seconds || 0
+        }
         setSeconds(storedSeconds)
         setSolved(true)
         setHasSaved(true)
@@ -41,7 +46,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
         console.error('Failed to parse stored puzzle state', e)
       }
     }
-  }, [puzzle.id, solution])
+  }, [puzzle.id, puzzle.completed, solution])
 
   // Timer
   useEffect(() => {

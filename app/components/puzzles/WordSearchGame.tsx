@@ -17,13 +17,18 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
 
   const getCell = (r: number, c: number) => `${r}-${c}`
 
-  // Restore from localStorage
+  // Restore from localStorage or DB
   useEffect(() => {
     const storageKey = `puzzle-completed-${puzzle.id}`
     const stored = localStorage.getItem(storageKey)
-    if (stored) {
+    
+    if (puzzle.completed || stored) {
       try {
-        const { seconds: storedSeconds } = JSON.parse(stored)
+        let storedSeconds = 0
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          storedSeconds = parsed.seconds || 0
+        }
         setSeconds(storedSeconds)
         setSolved(true)
         setHasSaved(true)
@@ -38,7 +43,7 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
         console.error('Failed to parse stored puzzle state', e)
       }
     }
-  }, [puzzle.id, words, solution])
+  }, [puzzle.id, puzzle.completed, words, solution])
 
   useEffect(() => {
     if (solved) return
