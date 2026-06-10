@@ -16,7 +16,6 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
   useEffect(() => {
     if (puzzle.completed) {
       setSolved(true)
-      setHasSaved(true)
       setSelected(answer)
       setRevealed(true)
       return
@@ -29,7 +28,6 @@ export default function LogicGame({ puzzle }: { puzzle: Puzzle }) {
         const { seconds: storedSeconds } = JSON.parse(stored)
         setSeconds(storedSeconds)
         setSolved(true)
-        setHasSaved(true)
         setSelected(answer)
         setRevealed(true)
       } catch (e) {
