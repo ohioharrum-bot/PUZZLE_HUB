@@ -27,7 +27,7 @@ export default async function HomePage() {
                 <span>Daily puzzle studio</span>
               </div>
             </div>
-            <div className="px-5 py-14 text-center md:px-12 md:py-20">
+            <div className="flex flex-col items-center px-5 py-14 text-center md:px-12 md:py-20">
               <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.1] tracking-[-0.03em] text-black sm:text-5xl md:text-6xl">
                 Quiet puzzles for sharper everyday thinking
               </h1>

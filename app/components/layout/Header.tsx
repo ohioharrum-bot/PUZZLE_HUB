@@ -43,7 +43,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-black/10 bg-[#eef0f2]/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 md:px-6">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-black">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white">
             <Brain className="h-4 w-4" />
@@ -106,7 +106,7 @@ export default function Header() {
 
       {/* Mobile Nav */}
       {isOpen && (
-        <nav className="fixed inset-x-0 bottom-0 top-[57px] z-50 h-[calc(100vh-57px)] overflow-y-auto bg-[#eef0f2] px-6 pb-20 pt-8 xl:hidden animate-in fade-in slide-in-from-top-1 duration-200">
+        <nav className="fixed inset-x-0 bottom-0 top-[73px] z-50 h-[calc(100vh-73px)] overflow-y-auto bg-[#eef0f2] px-6 pb-20 pt-8 xl:hidden animate-in fade-in slide-in-from-top-1 duration-200">
           <div className="flex flex-col gap-3">
             <div className="mb-4 text-center">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30">Daily Puzzles</p>
