@@ -201,14 +201,15 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
       )}
 
       {/* Grid */}
-      <div
-        className="grid grid-cols-9 overflow-hidden rounded-2xl border-2 border-black/20 shadow-sm bg-white"
-        role="grid"
-        aria-label="Sudoku puzzle"
-        onKeyDown={handleKeyDown}
-      >
-        {grid.map((row, r) =>
-          row.map((cell, c) => {
+      <div className="w-full overflow-x-auto pb-2">
+        <div
+          className="grid grid-cols-9 overflow-hidden rounded-2xl border-2 border-black/20 shadow-sm bg-white min-w-[280px] max-w-[450px] mx-auto"
+          role="grid"
+          aria-label="Sudoku puzzle"
+          onKeyDown={handleKeyDown}
+        >
+          {grid.map((row, r) =>
+            row.map((cell, c) => {
             const isInitial = initialGrid[r][c] !== 0
             const isSelected = selected?.[0] === r && selected?.[1] === c
             const isError = errors.has(`${r}-${c}`)

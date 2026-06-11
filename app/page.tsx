@@ -21,26 +21,26 @@ export default async function HomePage() {
     <PageMotion>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-6">
-          <section className="motion-item overflow-hidden rounded-[34px] border border-black/10 bg-white/60 shadow-sm backdrop-blur">
+          <section className="motion-item w-full overflow-hidden rounded-[34px] border border-black/10 bg-white/60 shadow-sm backdrop-blur">
             <div className="border-b border-black/10 px-5 py-4">
               <div className="flex items-center justify-center text-[10px] font-bold uppercase tracking-[0.2em] text-black/35 md:justify-between">
                 <span>Daily puzzle studio</span>
               </div>
             </div>
-            <div className="flex flex-col items-center px-5 py-14 text-center md:px-12 md:py-20">
-              <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.1] tracking-[-0.03em] text-black sm:text-5xl md:text-6xl">
+            <div className="flex w-full flex-col items-center px-5 py-14 text-center md:px-12 md:py-20">
+              <h1 className="mx-auto max-w-full text-4xl font-semibold leading-[1.1] tracking-[-0.03em] text-black sm:text-5xl md:text-6xl lg:max-w-3xl">
                 Quiet puzzles for sharper everyday thinking
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-black/50 md:mt-6 md:text-lg">
+              <p className="mx-auto mt-5 max-w-full text-sm leading-relaxed text-black/50 md:mt-6 md:text-lg lg:max-w-xl">
                 Play Sudoku, word search, logic, word guesser, and jigsaw puzzles from a focused dashboard built for quick sessions and calm problem solving.
               </p>
-              <div className="mt-10 flex justify-center">
+              <div className="mt-10 flex w-full justify-center">
                 <Link href="/puzzles/sudoku" className="rounded-full bg-black px-8 py-4 text-sm font-bold text-white shadow-2xl shadow-black/20 transition hover:-translate-y-1 active:scale-95">
                   Start with Sudoku
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-3 border-t border-black/10 divide-x divide-black/10">
+            <div className="grid w-full grid-cols-3 border-t border-black/10 divide-x divide-black/10">
               <Metric label="Types" value="5" />
               <Metric label="Daily" value={String(daily.length)} />
               <Metric label="Source" value="DB" />

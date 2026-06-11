@@ -37,16 +37,19 @@
   box-sizing: border-box;
 }
 
-html {
+html, body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+}
+
+html {
+  height: 100%;
 }
 
 body {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
@@ -61,8 +64,9 @@ body {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem; /* 16px as requested */
+  padding-left: 1rem;
   padding-right: 1rem;
+  overflow-x: hidden; /* Prevent child overflow */
 }
 
 ::selection {

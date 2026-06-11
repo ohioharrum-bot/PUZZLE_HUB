@@ -21,8 +21,8 @@ export default function PuzzleCard({ puzzle }: { puzzle: Puzzle }) {
   const displayType = puzzle.type === 'wordle' ? 'word-guesser' : puzzle.type
 
   return (
-    <Link href={`/puzzles/${displayType}/${puzzle.id}`} className="group block h-full">
-      <div className="h-full cursor-pointer rounded-[24px] border border-black/10 bg-white/70 p-5 shadow-sm backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-black/10">
+    <Link href={`/puzzles/${displayType}/${puzzle.id}`} className="group block h-full w-full">
+      <div className="h-full w-full cursor-pointer overflow-hidden rounded-[24px] border border-black/10 bg-white/70 p-5 shadow-sm backdrop-blur transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-xl hover:shadow-black/10">
         <div className="mb-5 flex items-start justify-between">
           <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#dff3ff] text-black ring-1 ring-black/5 transition group-hover:scale-105">
             <Icon className="h-5 w-5" />

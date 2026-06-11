@@ -48,12 +48,12 @@ export default async function PuzzleTypePage({ params }: { params: Promise<{ typ
     <PageMotion>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-6">
-          <section className="motion-item rounded-[34px] border border-black/10 bg-white/60 px-5 py-8 shadow-sm backdrop-blur md:px-10 md:py-12">
+          <section className="motion-item w-full overflow-hidden rounded-[34px] border border-black/10 bg-white/60 px-5 py-8 shadow-sm backdrop-blur md:px-10 md:py-12">
             <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.24em] text-black/35">Puzzle collection</p>
-            <h1 className="max-w-3xl text-3xl font-semibold leading-[1.05] tracking-[-0.03em] text-black sm:text-4xl md:text-6xl">
+            <h1 className="max-w-full text-3xl font-semibold leading-[1.05] tracking-[-0.03em] text-black sm:text-4xl md:text-6xl lg:max-w-3xl">
               {meta.title}
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-black/50 md:text-base">{meta.description}</p>
+            <p className="mt-4 max-w-full text-sm leading-6 text-black/50 md:text-base lg:max-w-2xl">{meta.description}</p>
           </section>
 
           <div className="motion-item">

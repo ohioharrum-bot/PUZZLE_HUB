@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${poppins.variable} ${robotoMono.variable} min-h-screen bg-[#eef0f2] font-sans text-[#111318]`}
+        className={`${poppins.variable} ${robotoMono.variable} min-h-screen w-full max-w-full overflow-x-hidden bg-[#eef0f2] font-sans text-[#111318]`}
         suppressHydrationWarning
       >
         <Header />

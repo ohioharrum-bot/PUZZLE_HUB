@@ -42,8 +42,8 @@ export default function Header() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/10 bg-[#eef0f2]/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-5 md:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#eef0f2]/85 backdrop-blur-xl">
+      <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-4 py-5 md:px-6">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-black">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white">
             <Brain className="h-4 w-4" />

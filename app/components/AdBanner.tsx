@@ -30,7 +30,7 @@ export default function AdBanner({ slot, format = 'auto', className = '' }: AdBa
       <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-black/35">Advertisement</p>
       <ins
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', width: '100%' }}
         data-ad-client={clientId}
         data-ad-slot={slot}
         data-ad-format={format}

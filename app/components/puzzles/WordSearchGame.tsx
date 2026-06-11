@@ -192,6 +192,7 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                           isSelecting_ ? 'bg-indigo-500 text-white z-10 scale-105 rounded-sm shadow-md' : '',
                           !isHighlighted && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
                         ].join(' ')}
+                        style={{ width: '100%', height: '100%', aspectRatio: '1/1' }}
                       >
                         {letter}
                       </div>
