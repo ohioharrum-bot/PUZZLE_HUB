@@ -1,10 +1,10 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { createClient } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Brain } from 'lucide-react'
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -13,6 +13,8 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const gatedMessage = searchParams.get('message')
 
   const handleAuth = async () => {
     setLoading(true)
@@ -128,6 +130,9 @@ export default function LoginPage() {
 
           {error && <p className="text-xs font-medium text-red-500 bg-red-50 p-2 rounded-lg border border-red-100">{error}</p>}
           {message && <p className="text-xs font-medium text-green-600 bg-green-50 p-2 rounded-lg border border-green-100">{message}</p>}
+          {gatedMessage && !error && !message && (
+            <p className="text-xs font-medium text-indigo-600 bg-indigo-50 p-2 rounded-lg border border-indigo-100">{gatedMessage}</p>
+          )}
 
           <button
             onClick={handleAuth}
@@ -147,5 +152,17 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-[85vh] items-center justify-center">
+        <div className="animate-pulse text-black/20 font-bold uppercase tracking-widest text-xs">Loading Auth...</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

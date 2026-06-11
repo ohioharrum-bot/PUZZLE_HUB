@@ -53,10 +53,12 @@ export async function generateAndStoreDailyPuzzles() {
           } catch (e) {
             console.error('❌ AI WordSearch failed, falling back:', e)
             puzzleData = generateWordSearch('medium')
+            title = `Daily Word Search - ${today}`
           }
         } else {
           console.warn('⚠️ GROQ_API_KEY missing, using local WordSearch bank')
           puzzleData = generateWordSearch('medium')
+          title = `Daily Word Search - ${today}`
         }
       } else if (type === 'logic') {
         if (process.env.GROQ_API_KEY) {
@@ -68,10 +70,12 @@ export async function generateAndStoreDailyPuzzles() {
           } catch (e) {
             console.error('❌ AI Logic failed, falling back:', e)
             puzzleData = generateLogicPuzzle('medium')
+            title = `Daily Riddle - ${today}`
           }
         } else {
           console.warn('⚠️ GROQ_API_KEY missing, using local Logic bank')
           puzzleData = generateLogicPuzzle('medium')
+          title = `Daily Riddle - ${today}`
         }
       } else if (type === 'wordle') {
         if (process.env.GROQ_API_KEY) {
@@ -86,9 +90,11 @@ export async function generateAndStoreDailyPuzzles() {
           } catch (e) {
             console.error('❌ AI Word Guesser failed, falling back:', e)
             puzzleData = { solution: 'PUZZLE' }
+            title = `Daily Word Guesser - ${today}`
           }
         } else {
           puzzleData = { solution: 'PUZZLE' }
+          title = `Daily Word Guesser - ${today}`
         }
       }
  else if (type === 'jigsaw') {
