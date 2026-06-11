@@ -5,8 +5,8 @@ export default function Footer() {
   return (
     <footer className="mx-auto mt-16 w-full max-w-7xl px-4 pb-12 md:px-6">
       <div className="rounded-[34px] border border-black/10 bg-white/60 p-8 backdrop-blur shadow-sm md:p-12">
-        <div className="grid gap-12 lg:grid-cols-2">
-          <div className="space-y-6">
+        <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-start lg:text-left">
+          <div className="flex flex-col items-center space-y-6 lg:items-start lg:space-y-6">
             <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight text-black">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white">
                 <Brain className="h-5 w-5" />
@@ -23,8 +23,8 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
-            <div>
+          <div className="grid w-full grid-cols-2 gap-8 sm:grid-cols-3 lg:flex-1">
+            <div className="flex flex-col items-center lg:items-start">
               <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-black/30">Puzzles</h4>
               <ul className="space-y-3 text-sm font-medium">
                 <li><FooterLink href="/puzzles/sudoku">Sudoku</FooterLink></li>
@@ -34,7 +34,7 @@ export default function Footer() {
                 <li><FooterLink href="/puzzles/logic">Logic</FooterLink></li>
               </ul>
             </div>
-            <div>
+            <div className="flex flex-col items-center lg:items-start">
               <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-black/30">Platform</h4>
               <ul className="space-y-3 text-sm font-medium">
                 <li><FooterLink href="/blog">Puzzle Blog</FooterLink></li>
@@ -42,7 +42,7 @@ export default function Footer() {
                 <li><FooterLink href="/contact">Contact Support</FooterLink></li>
               </ul>
             </div>
-            <div>
+            <div className="flex flex-col items-center justify-center sm:justify-start lg:items-start col-span-2 sm:col-span-1">
               <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-black/30">Legal</h4>
               <ul className="space-y-3 text-sm font-medium">
                 <li><FooterLink href="/privacy">Privacy Policy</FooterLink></li>
