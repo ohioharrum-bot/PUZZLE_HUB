@@ -265,6 +265,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
             )
           })
         )}
+        </div>
       </div>
 
       {/* Controls */}

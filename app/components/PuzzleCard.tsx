@@ -1,3 +1,4 @@
+'use client'
 import Link from 'next/link'
 import { Brain, Grid3X3, Puzzle as PuzzleIcon, Search, Users, Type, Lock } from 'lucide-react'
 import { Puzzle } from '@/types/puzzle'
