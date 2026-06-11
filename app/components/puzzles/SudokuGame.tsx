@@ -270,7 +270,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
       {!solved && (
         <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
           {/* Virtual Number Pad for Mobile */}
-          <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap justify-center sm:gap-2 w-full max-w-[340px] sm:max-w-sm">
+          <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap justify-center sm:gap-2 w-full max-w-full sm:max-w-sm">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
               <button
                 key={num}

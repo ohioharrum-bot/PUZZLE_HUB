@@ -173,7 +173,7 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-[310px] min-[360px]:max-w-[340px] sm:max-w-sm mx-auto">
+    <div className="flex flex-col items-center gap-6 w-full max-w-full sm:max-w-sm mx-auto overflow-hidden px-1">
       <div className="flex items-center justify-between w-full text-sm">
         <div className="flex items-center gap-3">
           <span className="font-mono font-semibold text-black/70 bg-white/60 px-3 py-1 rounded-full border border-black/5 shadow-sm">{formatTime(seconds)}</span>

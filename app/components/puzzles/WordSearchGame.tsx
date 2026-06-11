@@ -205,7 +205,7 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
         </div>
 
         {/* Word List Container */}
-        <div className="bg-white/80 border border-black/10 rounded-[28px] p-6 w-full lg:max-w-[300px] shadow-sm backdrop-blur-md">
+        <div className="bg-white/80 border border-black/10 rounded-[28px] p-6 w-full lg:max-w-xs shadow-sm backdrop-blur-md">
           <h3 className="font-bold text-black mb-4 flex items-center justify-between">
             <span className="text-lg tracking-tight">Word List</span>
             <span className="text-xs font-medium bg-black/5 px-2 py-1 rounded-full text-black/40">{found.length}/{words.length}</span>

@@ -3,7 +3,7 @@ import { Brain, Heart, Code, Send, Mail } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer className="mx-auto mt-16 w-full max-w-7xl px-4 pb-12 md:px-6">
+    <footer className="mx-auto mt-16 w-full max-w-[1200px] px-4 pb-12">
       <div className="rounded-[34px] border border-black/10 bg-white/60 p-8 backdrop-blur shadow-sm md:p-12">
         <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-start lg:text-left">
           <div className="flex w-full flex-col items-center space-y-6 lg:w-auto lg:items-start">
