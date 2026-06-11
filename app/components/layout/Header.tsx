@@ -116,8 +116,10 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setIsOpen(false)}
-                className="flex w-full items-center justify-between rounded-2xl bg-white px-6 py-4 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
+                onClick={() => {
+                  setIsOpen(false)
+                }}
+                className="flex w-full items-center justify-between rounded-2xl bg-white px-6 py-4 text-base font-bold text-black shadow-sm"
               >
                 <div className="flex items-center gap-4">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/5 text-black/40">
@@ -135,11 +137,11 @@ export default function Header() {
               <div className="h-px flex-1 bg-black/5" />
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
+            <div className="flex flex-col items-center gap-3">
               <Link
                 href="/contact"
                 onClick={() => setIsOpen(false)}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm"
               >
                 <UserIcon className="h-5 w-5 opacity-40" />
                 Contact Support
@@ -150,14 +152,14 @@ export default function Header() {
                   <Link
                     href="/profile"
                     onClick={() => setIsOpen(false)}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm"
                   >
                     <UserIcon className="h-5 w-5 opacity-40" />
                     My Profile
                   </Link>
                   <button
                     onClick={() => { handleSignOut(); setIsOpen(false); }}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-red-50 px-6 py-5 text-base font-bold text-red-600 shadow-sm transition active:scale-[0.97] active:bg-red-600 active:text-white"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-red-50 px-6 py-5 text-base font-bold text-red-600 shadow-sm"
                   >
                     <UserIcon className="h-5 w-5 opacity-40" />
                     Sign Out
@@ -168,7 +170,7 @@ export default function Header() {
                   <Link
                     href="/profile"
                     onClick={() => setIsOpen(false)}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm"
                   >
                     <UserIcon className="h-5 w-5 opacity-40" />
                     My Progress
@@ -176,7 +178,7 @@ export default function Header() {
                   <Link
                     href="/auth/login"
                     onClick={() => setIsOpen(false)}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-black px-6 py-5 text-base font-bold text-white shadow-lg shadow-black/10 transition active:scale-[0.97] active:bg-black/80"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-black px-6 py-5 text-base font-bold text-white shadow-lg shadow-black/10"
                   >
                     <UserIcon className="h-5 w-5 opacity-40" />
                     Sign In to Sync

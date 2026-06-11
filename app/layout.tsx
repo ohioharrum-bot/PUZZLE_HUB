@@ -40,7 +40,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
       >
         <Header />
-        <main className="mx-auto max-w-7xl px-2 min-[360px]:px-4 py-5 md:px-6">{children}</main>
+        <main className="flex w-full flex-col items-center">
+          <div className="w-full max-w-7xl px-2 min-[360px]:px-4 py-5 md:px-6">
+            {children}
+          </div>
+        </main>
         <Footer />
       </body>
     </html>
