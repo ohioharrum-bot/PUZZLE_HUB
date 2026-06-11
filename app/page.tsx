@@ -78,9 +78,9 @@ export default async function HomePage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-black/10 px-5 py-5 text-center border-r last:border-r-0 md:text-left">
+    <div className="flex flex-col items-center px-2 py-5 text-center">
       <p className="text-2xl font-semibold tracking-[-0.03em] text-black md:text-3xl">{value}</p>
-      <p className="mt-1 text-[10px] text-black/40 uppercase tracking-widest">{label}</p>
+      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-black/25">{label}</p>
     </div>
   )
 }
@@ -89,10 +89,10 @@ function PuzzleSection({ title, intro, puzzles }: { title: string; intro: string
   if (!puzzles.length) return null
   return (
     <section className="motion-item">
-      <div className="mb-6 flex flex-col items-center gap-2 text-center md:flex-row md:items-end md:justify-between md:text-left">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-[-0.02em] text-black md:text-3xl">{title}</h2>
-          <p className="mt-1 max-w-xl text-sm text-black/45">{intro}</p>
+      <div className="mb-8 flex flex-col items-center px-4 text-center md:mb-6 md:flex-row md:items-end md:justify-between md:px-0 md:text-left">
+        <div className="max-w-xl space-y-1.5">
+          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-black md:text-3xl">{title}</h2>
+          <p className="text-sm leading-relaxed text-black/45">{intro}</p>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
