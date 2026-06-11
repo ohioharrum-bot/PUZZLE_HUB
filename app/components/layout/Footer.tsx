@@ -23,10 +23,10 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:flex-1">
+          <div className="flex w-full flex-col items-center gap-y-10 lg:flex-1 lg:flex-row lg:items-start lg:justify-between lg:gap-x-12">
             <div className="flex flex-col items-center lg:items-start">
               <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black/25">Puzzles</h4>
-              <ul className="space-y-3 text-sm font-medium">
+              <ul className="space-y-4 text-center text-sm font-medium lg:text-left">
                 <li><FooterLink href="/puzzles/sudoku">Sudoku</FooterLink></li>
                 <li><FooterLink href="/puzzles/wordsearch">Word Search</FooterLink></li>
                 <li><FooterLink href="/puzzles/word-guesser">Word Guesser</FooterLink></li>
@@ -36,15 +36,15 @@ export default function Footer() {
             </div>
             <div className="flex flex-col items-center lg:items-start">
               <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black/25">Platform</h4>
-              <ul className="space-y-3 text-sm font-medium">
+              <ul className="space-y-4 text-center text-sm font-medium lg:text-left">
                 <li><FooterLink href="/blog">Puzzle Blog</FooterLink></li>
                 <li><FooterLink href="/profile">My Progress</FooterLink></li>
                 <li><FooterLink href="/contact">Contact Support</FooterLink></li>
               </ul>
             </div>
-            <div className="col-span-2 flex flex-col items-center sm:col-span-1 lg:items-start">
+            <div className="flex flex-col items-center lg:items-start">
               <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black/25">Legal</h4>
-              <ul className="space-y-3 text-sm font-medium">
+              <ul className="space-y-4 text-center text-sm font-medium lg:text-left">
                 <li><FooterLink href="/privacy">Privacy Policy</FooterLink></li>
                 <li><FooterLink href="/terms">Terms of Service</FooterLink></li>
               </ul>

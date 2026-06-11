@@ -27,15 +27,15 @@ export default async function HomePage() {
                 <span>Daily puzzle studio</span>
               </div>
             </div>
-            <div className="px-6 py-10 text-center md:px-12 md:py-16">
-              <h1 className="mx-auto max-w-3xl text-3xl font-semibold leading-[1.1] tracking-[-0.03em] text-black sm:text-4xl md:text-6xl">
+            <div className="px-5 py-14 text-center md:px-12 md:py-20">
+              <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.1] tracking-[-0.03em] text-black sm:text-5xl md:text-6xl">
                 Quiet puzzles for sharper everyday thinking
               </h1>
-              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-black/50 md:mt-5 md:text-base">
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-black/50 md:mt-6 md:text-lg">
                 Play Sudoku, word search, logic, word guesser, and jigsaw puzzles from a focused dashboard built for quick sessions and calm problem solving.
               </p>
-              <div className="mt-8 flex justify-center">
-                <Link href="/puzzles/sudoku" className="rounded-full bg-black px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:-translate-y-0.5 active:scale-95">
+              <div className="mt-10 flex justify-center">
+                <Link href="/puzzles/sudoku" className="rounded-full bg-black px-8 py-4 text-sm font-bold text-white shadow-2xl shadow-black/20 transition hover:-translate-y-1 active:scale-95">
                   Start with Sudoku
                 </Link>
               </div>
