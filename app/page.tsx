@@ -23,24 +23,24 @@ export default async function HomePage() {
         <div className="space-y-6">
           <section className="motion-item overflow-hidden rounded-[34px] border border-black/10 bg-white/60 shadow-sm backdrop-blur">
             <div className="border-b border-black/10 px-5 py-4">
-              <div className="flex items-center justify-between text-xs text-black/45">
+              <div className="flex items-center justify-center text-[10px] font-bold uppercase tracking-[0.2em] text-black/35 md:justify-between">
                 <span>Daily puzzle studio</span>
               </div>
             </div>
-            <div className="px-5 py-8 text-center md:px-12 md:py-16">
-              <h1 className="mx-auto max-w-3xl text-3xl font-semibold leading-[1.05] tracking-[-0.03em] text-black sm:text-4xl md:text-6xl">
+            <div className="px-6 py-10 text-center md:px-12 md:py-16">
+              <h1 className="mx-auto max-w-3xl text-3xl font-semibold leading-[1.1] tracking-[-0.03em] text-black sm:text-4xl md:text-6xl">
                 Quiet puzzles for sharper everyday thinking
               </h1>
-              <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-black/50 md:mt-5 md:text-base">
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-black/50 md:mt-5 md:text-base">
                 Play Sudoku, word search, logic, word guesser, and jigsaw puzzles from a focused dashboard built for quick sessions and calm problem solving.
               </p>
-              <div className="mt-7 flex justify-center">
-                <Link href="/puzzles/sudoku" className="rounded-full bg-black px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/15 transition hover:-translate-y-0.5">
+              <div className="mt-8 flex justify-center">
+                <Link href="/puzzles/sudoku" className="rounded-full bg-black px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:-translate-y-0.5 active:scale-95">
                   Start with Sudoku
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-3 border-t border-black/10">
+            <div className="grid grid-cols-3 border-t border-black/10 divide-x divide-black/10">
               <Metric label="Types" value="5" />
               <Metric label="Daily" value={String(daily.length)} />
               <Metric label="Source" value="DB" />

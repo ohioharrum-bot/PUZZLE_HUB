@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="mx-auto mt-16 w-full max-w-7xl px-4 pb-12 md:px-6">
       <div className="rounded-[34px] border border-black/10 bg-white/60 p-8 backdrop-blur shadow-sm md:p-12">
         <div className="flex flex-col items-center gap-12 text-center lg:flex-row lg:items-start lg:text-left">
-          <div className="flex flex-col items-center space-y-6 lg:items-start lg:space-y-6">
+          <div className="flex w-full flex-col items-center space-y-6 lg:w-auto lg:items-start">
             <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight text-black">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white">
                 <Brain className="h-5 w-5" />
@@ -16,16 +16,16 @@ export default function Footer() {
             <p className="max-w-xs text-sm leading-relaxed text-black/45">
               A collection of quiet, focused puzzles designed for daily mental exercise and calm problem solving. Free to play, always.
             </p>
-            <div className="flex gap-3">
+            <div className="flex justify-center gap-3 lg:justify-start">
               <SocialLink href="#" icon={Send} />
               <SocialLink href="#" icon={Code} />
               <SocialLink href="#" icon={Mail} />
             </div>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-8 sm:grid-cols-3 lg:flex-1">
+          <div className="grid w-full grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:flex-1">
             <div className="flex flex-col items-center lg:items-start">
-              <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-black/30">Puzzles</h4>
+              <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black/25">Puzzles</h4>
               <ul className="space-y-3 text-sm font-medium">
                 <li><FooterLink href="/puzzles/sudoku">Sudoku</FooterLink></li>
                 <li><FooterLink href="/puzzles/wordsearch">Word Search</FooterLink></li>
@@ -35,15 +35,15 @@ export default function Footer() {
               </ul>
             </div>
             <div className="flex flex-col items-center lg:items-start">
-              <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-black/30">Platform</h4>
+              <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black/25">Platform</h4>
               <ul className="space-y-3 text-sm font-medium">
                 <li><FooterLink href="/blog">Puzzle Blog</FooterLink></li>
                 <li><FooterLink href="/profile">My Progress</FooterLink></li>
                 <li><FooterLink href="/contact">Contact Support</FooterLink></li>
               </ul>
             </div>
-            <div className="flex flex-col items-center justify-center sm:justify-start lg:items-start col-span-2 sm:col-span-1">
-              <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-black/30">Legal</h4>
+            <div className="col-span-2 flex flex-col items-center sm:col-span-1 lg:items-start">
+              <h4 className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-black/25">Legal</h4>
               <ul className="space-y-3 text-sm font-medium">
                 <li><FooterLink href="/privacy">Privacy Policy</FooterLink></li>
                 <li><FooterLink href="/terms">Terms of Service</FooterLink></li>
