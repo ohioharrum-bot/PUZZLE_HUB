@@ -139,11 +139,12 @@ async function seed() {
   console.log('🚀 Starting puzzle seed...');
   const newPuzzles = [];
 
+  const today = new Date().toISOString().split('T')[0];
   ['easy', 'medium', 'hard'].forEach((diff, i) => {
     const data = generateSudoku(diff);
     newPuzzles.push({
       id: uuidv4(),
-      title: `Daily Sudoku #${i + 1}`,
+      title: i === 0 ? `Daily Sudoku - ${today}` : `Sudoku Challenge - ${diff.charAt(0).toUpperCase() + diff.slice(1)}`,
       type: 'sudoku',
       difficulty: diff,
       puzzle_data: data,
