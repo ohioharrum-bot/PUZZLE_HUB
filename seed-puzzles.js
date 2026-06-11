@@ -203,7 +203,7 @@ async function seed() {
     newPuzzles.push({
       id: uuidv4(),
       title: w.title,
-      type: 'word-guesser',
+      type: 'wordle',
       difficulty: w.difficulty,
       puzzle_data: {
         solution: w.solution
@@ -213,7 +213,10 @@ async function seed() {
     });
   });
 
-  console.log(`📦 Generated ${newPuzzles.length} puzzles. Uploading to Supabase...`);
+  console.log(`📦 Generated ${newPuzzles.length} puzzles. Refreshing Supabase table...`);
+
+  // Clear existing puzzles to prevent duplicates
+  await supabase.from('puzzles').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
   const { error } = await supabase.from('puzzles').insert(newPuzzles);
 
