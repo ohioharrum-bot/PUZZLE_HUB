@@ -106,71 +106,96 @@ export default function Header() {
 
       {/* Mobile Nav */}
       {isOpen && (
-        <nav className="fixed inset-x-0 bottom-0 top-[57px] z-50 overflow-y-auto bg-[#eef0f2] px-4 pb-24 pt-6 xl:hidden animate-in fade-in slide-in-from-top-1 duration-200">
-          <div className="flex flex-col gap-1.5">
+        <nav className="fixed inset-x-0 bottom-0 top-[57px] z-50 h-[calc(100vh-57px)] overflow-y-auto bg-[#eef0f2] px-6 pb-20 pt-8 xl:hidden animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="flex flex-col gap-3">
+            <div className="mb-4 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30">Daily Puzzles</p>
+            </div>
+            
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 rounded-2xl bg-white/60 px-5 py-4 text-base font-semibold text-black transition active:scale-[0.98] active:bg-black active:text-white"
+                className="flex w-full items-center justify-between rounded-2xl bg-white px-6 py-4 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/5 text-black/40 group-active:text-white">
-                  <link.icon className="h-5 w-5" />
-                </span>
-                {link.label}
+                <div className="flex items-center gap-4">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/5 text-black/40">
+                    <link.icon className="h-5 w-5" />
+                  </span>
+                  {link.label}
+                </div>
+                <div className="h-2 w-2 rounded-full bg-black/5" />
               </Link>
             ))}
             
-            <hr className="my-6 border-black/5" />
-            
-            <Link
-              href="/contact"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-4 rounded-2xl bg-white/50 px-5 py-4 text-base font-medium text-black transition active:bg-black active:text-white"
-            >
-              <UserIcon className="h-5 w-5 opacity-40" />
-              Contact Support
-            </Link>
+            <div className="my-8 flex items-center gap-4">
+              <div className="h-px flex-1 bg-black/5" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/30">Account & Help</p>
+              <div className="h-px flex-1 bg-black/5" />
+            </div>
 
-            {user ? (
-              <>
-                <Link
-                  href="/profile"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-4 rounded-2xl bg-white/50 px-5 py-4 text-base font-medium text-black transition active:bg-black active:text-white"
-                >
-                  <UserIcon className="h-5 w-5 opacity-40" />
-                  Profile
-                </Link>
-                <button
-                  onClick={() => { handleSignOut(); setIsOpen(false); }}
-                  className="flex items-center gap-4 rounded-2xl bg-red-50 px-5 py-4 text-base font-medium text-red-600 transition active:bg-red-600 active:text-white"
-                >
-                  <UserIcon className="h-5 w-5 opacity-40" />
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/profile"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-4 rounded-2xl bg-white/50 px-5 py-4 text-base font-medium text-black transition active:bg-black active:text-white"
-                >
-                  <UserIcon className="h-5 w-5 opacity-40" />
-                  My Progress
-                </Link>
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-4 rounded-2xl bg-black px-5 py-4 text-base font-medium text-white transition active:bg-black/80"
-                >
-                  <UserIcon className="h-5 w-5 opacity-40" />
-                  Sign In
-                </Link>
-              </>
-            )}
+            <div className="grid grid-cols-1 gap-3">
+              <Link
+                href="/contact"
+                onClick={() => setIsOpen(false)}
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
+              >
+                <UserIcon className="h-5 w-5 opacity-40" />
+                Contact Support
+              </Link>
+
+              {user ? (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
+                  >
+                    <UserIcon className="h-5 w-5 opacity-40" />
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={() => { handleSignOut(); setIsOpen(false); }}
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-red-50 px-6 py-5 text-base font-bold text-red-600 shadow-sm transition active:scale-[0.97] active:bg-red-600 active:text-white"
+                  >
+                    <UserIcon className="h-5 w-5 opacity-40" />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-6 py-5 text-base font-bold text-black shadow-sm transition active:scale-[0.97] active:bg-black active:text-white"
+                  >
+                    <UserIcon className="h-5 w-5 opacity-40" />
+                    My Progress
+                  </Link>
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsOpen(false)}
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-black px-6 py-5 text-base font-bold text-white shadow-lg shadow-black/10 transition active:scale-[0.97] active:bg-black/80"
+                  >
+                    <UserIcon className="h-5 w-5 opacity-40" />
+                    Sign In to Sync
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <div className="mt-12 flex flex-col items-center gap-4 pb-10 text-center">
+              <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight text-black">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white">
+                  <Brain className="h-4 w-4" />
+                </span>
+                Gizmopuzzle
+              </Link>
+              <p className="max-w-[200px] text-[10px] font-medium leading-relaxed text-black/30">
+                Crafted with love for puzzle lovers.<br/>© {new Date().getFullYear()} Gizmopuzzle Studio.
+              </p>
+            </div>
           </div>
         </nav>
       )}
