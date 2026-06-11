@@ -1,5 +1,6 @@
 import PageMotion from '@/components/PageMotion'
 import { Mail, MessageSquare, ShieldCheck, HelpCircle } from 'lucide-react'
+import Link from 'next/link'
 
 export default function ContactPage() {
   return (
@@ -43,6 +44,7 @@ export default function ContactPage() {
             description="Quick answers to common questions."
             link="/blog/benefits-of-puzzles"
             linkText="Visit Blog"
+            isInternal
           />
         </div>
 
@@ -68,7 +70,7 @@ export default function ContactPage() {
   )
 }
 
-function ContactCard({ icon: Icon, title, description, link, linkText }: { icon: any, title: string, description: string, link: string, linkText: string }) {
+function ContactCard({ icon: Icon, title, description, link, linkText, isInternal }: { icon: any, title: string, description: string, link: string, linkText: string, isInternal?: boolean }) {
   return (
     <div className="rounded-[28px] border border-black/10 bg-white/70 p-8 shadow-sm backdrop-blur transition-all hover:bg-white hover:shadow-xl hover:shadow-black/5">
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/20">
@@ -76,9 +78,15 @@ function ContactCard({ icon: Icon, title, description, link, linkText }: { icon:
       </div>
       <h3 className="mb-2 text-xl font-semibold text-black">{title}</h3>
       <p className="mb-6 text-sm leading-relaxed text-black/50">{description}</p>
-      <a href={link} className="text-sm font-bold text-indigo-600 hover:underline">
-        {linkText}
-      </a>
+      {isInternal ? (
+        <Link href={link} className="text-sm font-bold text-indigo-600 hover:underline">
+          {linkText}
+        </Link>
+      ) : (
+        <a href={link} className="text-sm font-bold text-indigo-600 hover:underline">
+          {linkText}
+        </a>
+      )}
     </div>
   )
 }
