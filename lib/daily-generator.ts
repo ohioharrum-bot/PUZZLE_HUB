@@ -78,7 +78,9 @@ export async function generateAndStoreDailyPuzzles() {
           try {
             console.log(`🤖 Generating AI Word Guesser for ${today}...`)
             const aiWord = await generateAIWordGuesser('medium')
-            puzzleData = { solution: aiWord.word }
+            // Ensure the word is sanitized
+            const sanitizedWord = (aiWord.word || 'PUZZLE').trim().toUpperCase()
+            puzzleData = { solution: sanitizedWord }
             title = `Daily Word Guesser: ${aiWord.theme_hint || '5-Letter Word'} - ${today}`
             console.log('✅ AI Word Guesser generated')
           } catch (e) {

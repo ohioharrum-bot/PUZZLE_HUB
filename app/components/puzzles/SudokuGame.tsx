@@ -235,7 +235,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                 aria-label={`Row ${r + 1}, Column ${c + 1}`}
                 onFocus={() => setSelected([r, c])}
                 className={[
-                  'relative h-9 w-9 min-[380px]:h-10 min-[380px]:w-10 sm:h-12 sm:w-12 flex items-center justify-center text-base sm:text-lg outline-none transition-colors select-none cursor-pointer',
+                  'relative h-[32px] w-[32px] min-[360px]:h-9 min-[360px]:w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 flex items-center justify-center text-sm min-[360px]:text-base sm:text-lg outline-none transition-colors select-none cursor-pointer',
                   borderR, borderB,
                   isSelected
                     ? 'bg-indigo-500 text-white font-bold'
@@ -254,7 +254,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                 ) : (
                   <div className="grid grid-cols-3 grid-rows-3 h-full w-full p-0.5">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                      <div key={n} className="flex items-center justify-center text-[7px] min-[380px]:text-[8px] leading-none text-indigo-400/80 font-medium">
+                      <div key={n} className="flex items-center justify-center text-[6px] min-[360px]:text-[7px] min-[400px]:text-[8px] leading-none text-indigo-400/80 font-medium">
                         {candidates.get(`${r}-${c}`)?.has(n) ? n : ''}
                       </div>
                     ))}

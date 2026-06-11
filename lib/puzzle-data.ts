@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { Puzzle, PuzzleType } from '@/types/puzzle'
+import { generateAndStoreDailyPuzzles } from './daily-generator'
 
 type PuzzleQuery = {
   type?: PuzzleType
@@ -16,7 +17,22 @@ export async function getPuzzles({ type, limit }: PuzzleQuery = {}): Promise<Puz
   const { data, error } = await query
   if (error) throw new Error(error.message)
 
-  const puzzles = (data ?? []) as Puzzle[]
+  let puzzles = (data ?? []) as Puzzle[]
+
+  // --- LAZY DAILY GENERATION ---
+  // If no daily puzzles exist for today, trigger generation in the background
+  const today = new Date().toISOString().split('T')[0]
+  const hasToday = puzzles.some(p => p.is_daily && p.daily_date === today)
+  
+  if (!hasToday && !type) {
+    // We do this asynchronously to not block the current request
+    // The next request (or a refresh) will see the new puzzles
+    console.log(`🌞 Today's puzzles missing, triggering generation for ${today}...`)
+    generateAndStoreDailyPuzzles().catch(err => {
+      console.error('❌ Failed to lazy-generate daily puzzles:', err)
+    })
+  }
+  // -----------------------------
 
   // Check which are completed by current user
   const { data: { user } } = await supabase.auth.getUser()

@@ -173,7 +173,7 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-[340px] sm:max-w-sm mx-auto">
+    <div className="flex flex-col items-center gap-6 w-full max-w-[310px] min-[360px]:max-w-[340px] sm:max-w-sm mx-auto">
       <div className="flex items-center justify-between w-full text-sm">
         <div className="flex items-center gap-3">
           <span className="font-mono font-semibold text-black/70 bg-white/60 px-3 py-1 rounded-full border border-black/5 shadow-sm">{formatTime(seconds)}</span>
@@ -189,14 +189,14 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
             </div>
           </div>
         )}
-        <div className="grid grid-rows-6 gap-1.5 sm:gap-2 w-full aspect-[5/6]">
+        <div className="grid grid-rows-6 gap-1 sm:gap-2 w-full aspect-[5/6]">
           {[...Array(MAX_GUESSES)].map((_, i) => {
             const guess = guesses[i] || (i === guesses.length ? currentGuess : '')
             const isCurrent = i === guesses.length
             const isSubmitted = i < guesses.length
 
             return (
-              <div key={i} className={`grid grid-cols-5 gap-1.5 sm:gap-2 ${isCurrent && shake ? 'animate-shake' : ''}`}>
+              <div key={i} className={`grid grid-cols-5 gap-1 sm:gap-2 ${isCurrent && shake ? 'animate-shake' : ''}`}>
                 {[...Array(WORD_LENGTH)].map((_, j) => {
                   const char = guess[j] || ''
                   const status = isSubmitted ? getStatus(guess, j) : ''
@@ -205,7 +205,7 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
                     <div
                       key={j}
                       className={`
-                        aspect-square flex items-center justify-center text-xl sm:text-2xl font-black rounded-lg sm:rounded-xl border-2 transition-all duration-500 text-black
+                        aspect-square flex items-center justify-center text-lg min-[360px]:text-xl sm:text-2xl font-black rounded-lg sm:rounded-xl border-2 transition-all duration-500 text-black
                         ${!isSubmitted ? 'border-black/10 bg-white' : ''}
                         ${isSubmitted && status === 'correct' ? 'bg-green-500 border-green-600 text-white' : ''}
                         ${isSubmitted && status === 'present' ? 'bg-yellow-500 border-yellow-600 text-white' : ''}

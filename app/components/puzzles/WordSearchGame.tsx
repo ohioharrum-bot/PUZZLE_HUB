@@ -187,7 +187,7 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                         data-r={r}
                         data-c={c}
                         className={[
-                          'w-8 h-8 min-[380px]:w-9 min-[380px]:h-9 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-mono font-bold cursor-pointer border border-black/[0.03] transition-all touch-none',
+                          'w-7 h-7 min-[350px]:w-8 min-[350px]:h-8 min-[380px]:w-9 min-[380px]:h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xs min-[350px]:text-sm sm:text-base font-mono font-bold cursor-pointer border border-black/[0.03] transition-all touch-none',
                           isHighlighted ? 'bg-green-100 text-green-700' : '',
                           isSelecting_ ? 'bg-indigo-500 text-white z-10 scale-105 rounded-sm shadow-md' : '',
                           !isHighlighted && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
