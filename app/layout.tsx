@@ -39,8 +39,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Header />
         <main className="mx-auto max-w-7xl px-4 py-5 md:px-6">{children}</main>
-        <footer className="mx-auto mt-8 max-w-7xl border-t border-black/10 px-4 py-6 text-center text-xs text-black/45 md:px-6">
-          © {new Date().getFullYear()} Gizmopuzzle · All puzzles free to play
+        <footer className="mx-auto mt-8 max-w-7xl border-t border-black/10 px-4 py-8 text-center md:px-6">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex gap-6 text-xs font-medium text-black/45">
+              <Link href="/privacy" className="hover:text-black">Privacy Policy</Link>
+              <Link href="/blog" className="hover:text-black">Puzzle Blog</Link>
+              <Link href="/contact" className="hover:text-black">Contact</Link>
+            </div>
+            <p className="text-[10px] text-black/30">
+              © {new Date().getFullYear()} Gizmopuzzle · All puzzles free to play
+            </p>
+          </div>
         </footer>
       </body>
     </html>

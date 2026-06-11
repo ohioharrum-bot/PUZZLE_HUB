@@ -104,34 +104,35 @@ export default function Header() {
 
       {/* Mobile Nav */}
       {isOpen && (
-        <nav className="border-t border-black/5 bg-white/60 px-4 py-3 backdrop-blur-md md:hidden">
-          <div className="flex flex-col gap-1">
+        <nav className="border-t border-black/5 bg-white/60 px-4 py-4 backdrop-blur-md md:hidden">
+          <div className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+                className="flex items-center gap-4 rounded-2xl px-5 py-4 text-base font-medium text-black/70 transition hover:bg-black/5 active:bg-black/10"
               >
-                <link.icon className="h-5 w-5 text-black/40" />
+                <link.icon className="h-6 w-6 text-black/40" />
                 {link.label}
               </Link>
             ))}
-            <hr className="my-2 border-black/5" />
+            <hr className="my-3 border-black/5" />
             {user ? (
               <>
                 <Link
                   href="/profile"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+                  className="flex items-center gap-4 rounded-2xl px-5 py-4 text-base font-medium text-black/70 transition hover:bg-black/5 active:bg-black/10"
                 >
-                  <UserIcon className="h-5 w-5 text-black/40" />
+                  <UserIcon className="h-6 w-6 text-black/40" />
                   Profile
                 </Link>
                 <button
                   onClick={() => { handleSignOut(); setIsOpen(false); }}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  className="flex items-center gap-4 rounded-2xl px-5 py-4 text-base font-medium text-red-600 transition hover:bg-red-50 active:bg-red-100"
                 >
+                  <UserIcon className="h-6 w-6 text-red-400" />
                   Sign Out
                 </button>
               </>
@@ -140,17 +141,17 @@ export default function Header() {
                 <Link
                   href="/profile"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+                  className="flex items-center gap-4 rounded-2xl px-5 py-4 text-base font-medium text-black/70 transition hover:bg-black/5 active:bg-black/10"
                 >
-                  <UserIcon className="h-5 w-5 text-black/40" />
+                  <UserIcon className="h-6 w-6 text-black/40" />
                   My Progress
                 </Link>
                 <Link
                   href="/auth/login"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-black/5"
+                  className="flex items-center gap-4 rounded-2xl px-5 py-4 text-base font-medium text-black/70 transition hover:bg-black/5 active:bg-black/10"
                 >
-                  <UserIcon className="h-5 w-5 text-black/40" />
+                  <UserIcon className="h-6 w-6 text-black/40" />
                   Sign In
                 </Link>
               </>

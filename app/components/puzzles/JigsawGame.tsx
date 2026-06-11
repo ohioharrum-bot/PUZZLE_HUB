@@ -12,10 +12,10 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
   const rows = piecesCount / cols
 
   const [positions, setPositions] = useState<number[]>([])
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
   const [solved, setSolved] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [hasSaved, setHasSaved] = useState(false)
-  const [draggedSlot, setDraggedSlot] = useState<number | null>(null)
   const [autoLock, setAutoLock] = useState(false)
 
   // Shuffle pieces
@@ -60,44 +60,51 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
 
   const isPieceCorrect = (slotIdx: number, currentPositions: number[]) => currentPositions[slotIdx] === slotIdx
 
-  const handleDrop = (targetSlot: number) => {
-    if (draggedSlot === null || solved) return
+  const handleSlotClick = (slotIdx: number) => {
+    if (solved) return
     
     // If target is locked, ignore
-    if (autoLock && isPieceCorrect(targetSlot, positions)) {
-      setDraggedSlot(null)
+    if (autoLock && isPieceCorrect(slotIdx, positions)) {
+      setSelectedSlot(null)
       return
     }
 
-    const newPositions = [...positions]
-    const temp = newPositions[draggedSlot]
-    newPositions[draggedSlot] = newPositions[targetSlot]
-    newPositions[targetSlot] = temp
-    
-    setPositions(newPositions)
-    setDraggedSlot(null)
+    if (selectedSlot === null) {
+      setSelectedSlot(slotIdx)
+    } else if (selectedSlot === slotIdx) {
+      setSelectedSlot(null)
+    } else {
+      // Swap pieces
+      const newPositions = [...positions]
+      const temp = newPositions[selectedSlot]
+      newPositions[selectedSlot] = newPositions[slotIdx]
+      newPositions[slotIdx] = temp
+      
+      setPositions(newPositions)
+      setSelectedSlot(null)
 
-    // Check if solved
-    const isSolved = newPositions.every((p, i) => p === i)
-    if (isSolved) {
-      setSolved(true)
-      if (!hasSaved) {
-        const save = async () => {
-          const supabase = createClient()
-          const { data: { session } } = await supabase.auth.getSession()
-          if (!session) saveProgressLocally(puzzle.id, seconds)
-          try {
-            await fetch('/api/scores', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ puzzle_id: puzzle.id, time_seconds: seconds })
-            })
-            setHasSaved(true)
-          } catch (e) {
-            console.error('❌ Failed to submit score:', e)
+      // Check if solved
+      const isSolved = newPositions.every((p, i) => p === i)
+      if (isSolved) {
+        setSolved(true)
+        if (!hasSaved) {
+          const save = async () => {
+            const supabase = createClient()
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) saveProgressLocally(puzzle.id, seconds)
+            try {
+              await fetch('/api/scores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ puzzle_id: puzzle.id, time_seconds: seconds })
+              })
+              setHasSaved(true)
+            } catch (e) {
+              console.error('❌ Failed to submit score:', e)
+            }
           }
+          save()
         }
-        save()
       }
     }
   }
@@ -141,18 +148,18 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
                   const bgX = (pieceCol / (cols - 1)) * 100
                   const bgY = (pieceRow / (rows - 1)) * 100
                   const isLocked = autoLock && isPieceCorrect(slotIdx, positions)
+                  const isSelected = selectedSlot === slotIdx
 
                   return (
                     <div
                       key={slotIdx}
-                      draggable={!isLocked}
-                      onDragStart={() => setDraggedSlot(slotIdx)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => handleDrop(slotIdx)}
-                      className={`relative border transition-all duration-200 rounded-sm shadow-sm flex items-center justify-center ${
+                      onClick={() => handleSlotClick(slotIdx)}
+                      className={`relative border transition-all duration-200 rounded-sm shadow-sm flex items-center justify-center cursor-pointer ${
                         isLocked
-                          ? 'border-green-500/50 z-0 cursor-default'
-                          : 'border-white/10 hover:border-white/40 cursor-grab active:cursor-grabbing hover:z-10 hover:shadow-xl'
+                          ? 'border-green-500/50 z-0'
+                          : isSelected
+                            ? 'border-orange-500 ring-2 ring-orange-400 z-20 scale-105 shadow-xl'
+                            : 'border-white/10 hover:border-white/40 hover:z-10 hover:shadow-xl'
                       }`}
                       style={{
                         backgroundImage: `url(${data.image_url})`,
@@ -175,17 +182,17 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
           <div className="grid grid-cols-4 gap-2 sm:gap-3">
             {positions.map((pieceIdx, slotIdx) => {
               const isLocked = autoLock && isPieceCorrect(slotIdx, positions)
+              const isSelected = selectedSlot === slotIdx
               return (
                 <div
                   key={slotIdx}
-                  draggable={!isLocked}
-                  onDragStart={() => setDraggedSlot(slotIdx)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => handleDrop(slotIdx)}
-                  className={`aspect-square rounded-2xl border-2 sm:border-4 transition-all flex items-center justify-center text-lg sm:text-xl font-black relative ${
+                  onClick={() => handleSlotClick(slotIdx)}
+                  className={`aspect-square rounded-2xl border-2 sm:border-4 transition-all flex items-center justify-center text-lg sm:text-xl font-black relative cursor-pointer ${
                     isLocked || (pieceIdx === slotIdx && solved)
                       ? 'bg-green-500 border-green-600 text-white opacity-80 scale-95 cursor-default'
-                      : 'bg-indigo-500 border-indigo-600 text-white shadow-lg cursor-grab active:cursor-grabbing hover:scale-105 hover:rotate-2'
+                      : isSelected
+                        ? 'bg-orange-500 border-orange-600 text-white scale-110 rotate-2 z-20 shadow-2xl'
+                        : 'bg-indigo-500 border-indigo-600 text-white shadow-lg hover:scale-105'
                   }`}
                 >
                   {pieceIdx + 1}
@@ -232,6 +239,7 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
                 [arr[i], arr[j]] = [arr[j], arr[i]]
               }
               setPositions(arr)
+              setSelectedSlot(null)
               setSolved(false)
               setSeconds(0) 
             }}
@@ -241,7 +249,7 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
           </button>
         </div>
         <p className="text-[10px] text-black/30 font-medium uppercase tracking-wider text-center">
-          Drag and drop pieces to swap them
+          Tap two pieces to swap them
         </p>
       </div>
     </div>

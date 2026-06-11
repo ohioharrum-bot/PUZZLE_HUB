@@ -173,7 +173,7 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
+    <div className="flex flex-col items-center gap-6 w-full max-w-[340px] sm:max-w-sm mx-auto">
       <div className="flex items-center justify-between w-full text-sm">
         <div className="flex items-center gap-3">
           <span className="font-mono font-semibold text-black/70 bg-white/60 px-3 py-1 rounded-full border border-black/5 shadow-sm">{formatTime(seconds)}</span>
@@ -189,14 +189,14 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
             </div>
           </div>
         )}
-        <div className="grid grid-rows-6 gap-2 w-full aspect-[5/6]">
+        <div className="grid grid-rows-6 gap-1.5 sm:gap-2 w-full aspect-[5/6]">
           {[...Array(MAX_GUESSES)].map((_, i) => {
             const guess = guesses[i] || (i === guesses.length ? currentGuess : '')
             const isCurrent = i === guesses.length
             const isSubmitted = i < guesses.length
 
             return (
-              <div key={i} className={`grid grid-cols-5 gap-2 ${isCurrent && shake ? 'animate-shake' : ''}`}>
+              <div key={i} className={`grid grid-cols-5 gap-1.5 sm:gap-2 ${isCurrent && shake ? 'animate-shake' : ''}`}>
                 {[...Array(WORD_LENGTH)].map((_, j) => {
                   const char = guess[j] || ''
                   const status = isSubmitted ? getStatus(guess, j) : ''
@@ -205,10 +205,10 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
                     <div
                       key={j}
                       className={`
-                        aspect-square flex items-center justify-center text-2xl font-black rounded-xl border-2 transition-all duration-500 text-black
+                        aspect-square flex items-center justify-center text-xl sm:text-2xl font-black rounded-lg sm:rounded-xl border-2 transition-all duration-500 text-black
                         ${!isSubmitted ? 'border-black/10 bg-white' : ''}
-                        ${isSubmitted && status === 'correct' ? 'bg-green-500 border-green-600' : ''}
-                        ${isSubmitted && status === 'present' ? 'bg-yellow-500 border-yellow-600' : ''}
+                        ${isSubmitted && status === 'correct' ? 'bg-green-500 border-green-600 text-white' : ''}
+                        ${isSubmitted && status === 'present' ? 'bg-yellow-500 border-yellow-600 text-white' : ''}
                         ${isSubmitted && status === 'absent' ? 'bg-black/20 border-black/5 opacity-40' : ''}
                         ${isCurrent && char ? 'border-black/30 scale-105 shadow-sm' : ''}
                       `}
@@ -223,13 +223,13 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
         </div>
       </div>
 
-      <div className="w-full space-y-2 mt-4">
+      <div className="w-full space-y-1.5 sm:space-y-2 mt-4">
         {[
           ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
           ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
           ['Enter', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Backspace']
         ].map((row, i) => (
-          <div key={i} className="flex justify-center gap-1">
+          <div key={i} className="flex justify-center gap-1 sm:gap-1.5">
             {row.map(key => {
               const status = getKeyStatus(key.toLowerCase())
               const isSpecial = key.length > 1
@@ -239,11 +239,11 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
                   disabled={loading}
                   onClick={() => onKey(key)}
                   className={`
-                    flex items-center justify-center rounded-lg font-bold text-xs sm:text-sm h-12 transition-all active:scale-95 text-black disabled:opacity-50
-                    ${isSpecial ? 'px-3 sm:px-4' : 'flex-1'}
+                    flex items-center justify-center rounded-lg font-bold text-[10px] sm:text-sm h-10 sm:h-12 transition-all active:scale-95 text-black disabled:opacity-50
+                    ${isSpecial ? 'px-2 sm:px-4' : 'flex-1'}
                     ${!status ? 'bg-white border border-black/10 hover:bg-black/5' : ''}
-                    ${status === 'correct' ? 'bg-green-500 border-green-600' : ''}
-                    ${status === 'present' ? 'bg-yellow-500 border-yellow-600' : ''}
+                    ${status === 'correct' ? 'bg-green-500 border-green-600 text-white' : ''}
+                    ${status === 'present' ? 'bg-yellow-500 border-yellow-600 text-white' : ''}
                     ${status === 'absent' ? 'bg-black/10 text-black/40' : ''}
                   `}
                 >

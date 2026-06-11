@@ -149,56 +149,59 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
 
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
         {/* Grid Container */}
-        <div className="w-full flex justify-center lg:justify-start overflow-x-auto pb-4 scrollbar-hide">
-          <div
-            className="select-none inline-block border-2 border-black/10 rounded-2xl overflow-hidden shadow-sm bg-white touch-none"
-            onMouseLeave={endSelect}
-          >
-            {grid.map((row: string[], r: number) => (
-              <div key={r} className="flex">
-                {row.map((letter: string, c: number) => {
-                  const key = getCell(r, c)
-                  const isHighlighted = highlighted.has(key)
-                  const isSelecting_ = selecting.some(([sr, sc]) => sr === r && sc === c)
-                  return (
-                    <div
-                      key={c}
-                      onMouseDown={() => startSelect(r, c)}
-                      onMouseEnter={() => continueSelect(r, c)}
-                      onMouseUp={endSelect}
-                      onTouchStart={(e) => {
-                        e.preventDefault()
-                        startSelect(r, c)
-                      }}
-                      onTouchMove={(e) => {
-                        const touch = e.touches[0]
-                        const el = document.elementFromPoint(touch.clientX, touch.clientY)
-                        const rAttr = el?.getAttribute('data-r')
-                        const cAttr = el?.getAttribute('data-c')
-                        if (rAttr !== null && cAttr !== null && rAttr !== undefined && cAttr !== undefined) {
-                          continueSelect(parseInt(rAttr), parseInt(cAttr))
-                        }
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault()
-                        endSelect()
-                      }}
-                      data-r={r}
-                      data-c={c}
-                      className={[
-                        'w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-mono font-bold cursor-pointer border border-black/[0.03] transition-all touch-none',
-                        isHighlighted ? 'bg-green-100 text-green-700' : '',
-                        isSelecting_ ? 'bg-indigo-500 text-white z-10 scale-105 rounded-sm shadow-md' : '',
-                        !isHighlighted && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
-                      ].join(' ')}
-                    >
-                      {letter}
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
+        <div className="w-full flex flex-col items-center lg:items-start gap-2">
+          <div className="w-full overflow-x-auto pb-4 scrollbar-hide flex justify-center lg:justify-start">
+            <div
+              className="select-none inline-block border-2 border-black/10 rounded-2xl overflow-hidden shadow-sm bg-white touch-none"
+              onMouseLeave={endSelect}
+            >
+              {grid.map((row: string[], r: number) => (
+                <div key={r} className="flex">
+                  {row.map((letter: string, c: number) => {
+                    const key = getCell(r, c)
+                    const isHighlighted = highlighted.has(key)
+                    const isSelecting_ = selecting.some(([sr, sc]) => sr === r && sc === c)
+                    return (
+                      <div
+                        key={c}
+                        onMouseDown={() => startSelect(r, c)}
+                        onMouseEnter={() => continueSelect(r, c)}
+                        onMouseUp={endSelect}
+                        onTouchStart={(e) => {
+                          e.preventDefault()
+                          startSelect(r, c)
+                        }}
+                        onTouchMove={(e) => {
+                          const touch = e.touches[0]
+                          const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                          const rAttr = el?.getAttribute('data-r')
+                          const cAttr = el?.getAttribute('data-c')
+                          if (rAttr !== null && cAttr !== null && rAttr !== undefined && cAttr !== undefined) {
+                            continueSelect(parseInt(rAttr), parseInt(cAttr))
+                          }
+                        }}
+                        onTouchEnd={(e) => {
+                          e.preventDefault()
+                          endSelect()
+                        }}
+                        data-r={r}
+                        data-c={c}
+                        className={[
+                          'w-8 h-8 min-[380px]:w-9 min-[380px]:h-9 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-mono font-bold cursor-pointer border border-black/[0.03] transition-all touch-none',
+                          isHighlighted ? 'bg-green-100 text-green-700' : '',
+                          isSelecting_ ? 'bg-indigo-500 text-white z-10 scale-105 rounded-sm shadow-md' : '',
+                          !isHighlighted && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
+                        ].join(' ')}
+                      >
+                        {letter}
+                      </div>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
+          <p className="text-[10px] text-black/30 font-medium uppercase tracking-wider block lg:hidden">↔ Scroll to see full grid</p>
         </div>
 
         {/* Word List Container */}

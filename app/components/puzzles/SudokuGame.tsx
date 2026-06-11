@@ -235,7 +235,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                 aria-label={`Row ${r + 1}, Column ${c + 1}`}
                 onFocus={() => setSelected([r, c])}
                 className={[
-                  'relative h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center text-lg outline-none transition-colors select-none cursor-pointer',
+                  'relative h-9 w-9 min-[380px]:h-10 min-[380px]:w-10 sm:h-12 sm:w-12 flex items-center justify-center text-base sm:text-lg outline-none transition-colors select-none cursor-pointer',
                   borderR, borderB,
                   isSelected
                     ? 'bg-indigo-500 text-white font-bold'
@@ -254,7 +254,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                 ) : (
                   <div className="grid grid-cols-3 grid-rows-3 h-full w-full p-0.5">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                      <div key={n} className="flex items-center justify-center text-[8px] leading-none text-indigo-400/80 font-medium">
+                      <div key={n} className="flex items-center justify-center text-[7px] min-[380px]:text-[8px] leading-none text-indigo-400/80 font-medium">
                         {candidates.get(`${r}-${c}`)?.has(n) ? n : ''}
                       </div>
                     ))}
@@ -268,9 +268,9 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
 
       {/* Controls */}
       {!solved && (
-        <div className="flex flex-col items-center gap-6 w-full">
+        <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
           {/* Virtual Number Pad for Mobile */}
-          <div className="grid grid-cols-5 sm:flex sm:flex-wrap justify-center gap-2 w-full max-w-sm">
+          <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap justify-center sm:gap-2 w-full max-w-[340px] sm:max-w-sm">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
               <button
                 key={num}
@@ -279,7 +279,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                     handleInput(selected[0], selected[1], num.toString())
                   }
                 }}
-                className="aspect-square sm:aspect-auto sm:h-12 sm:w-12 flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-lg font-bold text-black/70 transition hover:bg-black hover:text-white active:scale-90"
+                className="aspect-square flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-lg font-bold text-black/70 transition hover:bg-black hover:text-white active:scale-90 shadow-sm"
               >
                 {num}
               </button>
@@ -290,16 +290,16 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                   handleInput(selected[0], selected[1], '0')
                 }
               }}
-              className="aspect-square sm:aspect-auto sm:h-12 sm:px-4 flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-xs font-bold text-black/40 transition hover:bg-red-500 hover:text-white active:scale-90"
+              className="aspect-square flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-xs font-bold text-black/40 transition hover:bg-red-500 hover:text-white active:scale-90 shadow-sm"
             >
               DEL
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <button
               onClick={() => setPencilMode(!pencilMode)}
-              className={`rounded-full border px-5 py-2.5 text-xs font-bold transition shadow-sm ${
+              className={`rounded-full border px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold transition shadow-sm ${
                 pencilMode 
                   ? 'bg-indigo-500 border-indigo-600 text-white shadow-inner' 
                   : 'bg-white/80 border-black/10 text-black/60 hover:bg-black/5'
@@ -309,7 +309,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
             </button>
             <button
               onClick={reset}
-              className="rounded-full border border-black/10 bg-white/80 px-5 py-2.5 text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
+              className="rounded-full border border-black/10 bg-white/80 px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
             >
               🔄 Reset
             </button>
@@ -323,7 +323,7 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
                 )
                 setErrors(newErrors)
               }}
-              className="rounded-full border border-black/10 bg-white/80 px-5 py-2.5 text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
+              className="rounded-full border border-black/10 bg-white/80 px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
             >
               ✓ Check
             </button>

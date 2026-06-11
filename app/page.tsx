@@ -27,11 +27,11 @@ export default async function HomePage() {
                 <span>Daily puzzle studio</span>
               </div>
             </div>
-            <div className="px-5 py-12 text-center md:px-12 md:py-16">
-              <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-black md:text-6xl">
+            <div className="px-5 py-8 text-center md:px-12 md:py-16">
+              <h1 className="mx-auto max-w-3xl text-3xl font-semibold leading-[1.05] tracking-[-0.03em] text-black sm:text-4xl md:text-6xl">
                 Quiet puzzles for sharper everyday thinking
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-black/50 md:text-base">
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-black/50 md:mt-5 md:text-base">
                 Play Sudoku, word search, logic, word guesser, and jigsaw puzzles from a focused dashboard built for quick sessions and calm problem solving.
               </p>
               <div className="mt-7 flex justify-center">
