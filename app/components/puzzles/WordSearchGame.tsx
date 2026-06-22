@@ -162,9 +162,11 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   const fmt = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
   const timeRemaining = Math.max(0, TIME_LIMIT_SECONDS - seconds)
   const missingWords = words.filter(w => !found.includes(w))
+  const cols = grid[0]?.length ?? 12
+  const rows = grid.length
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
+    <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center gap-3">
           <span className="font-mono font-semibold text-black/70 bg-white/60 px-3 py-1 rounded-full border border-black/5 shadow-sm">{fmt(seconds)}</span>
@@ -191,66 +193,69 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
-        <div className="w-full flex flex-col items-center lg:items-start gap-2">
-          <div className="w-full overflow-x-auto pb-4 scrollbar-hide flex justify-center lg:justify-start">
-            <div
-              className="select-none inline-block border-2 border-black/10 rounded-2xl overflow-hidden shadow-sm bg-white touch-none"
-              onMouseLeave={endSelect}
-            >
-              {grid.map((row: string[], r: number) => (
-                <div key={r} className="flex">
-                  {row.map((letter: string, c: number) => {
-                    const key = getCell(r, c)
-                    const isFound = highlighted.has(key)
-                    const isUnfound = unfoundHighlighted.has(key)
-                    const isSelecting_ = selecting.some(([sr, sc]) => sr === r && sc === c)
-                    return (
-                      <div
-                        key={c}
-                        onMouseDown={() => startSelect(r, c)}
-                        onMouseEnter={() => continueSelect(r, c)}
-                        onMouseUp={endSelect}
-                        onTouchStart={(e) => {
-                          e.preventDefault()
-                          startSelect(r, c)
-                        }}
-                        onTouchMove={(e) => {
-                          const touch = e.touches[0]
-                          const el = document.elementFromPoint(touch.clientX, touch.clientY)
-                          const rAttr = el?.getAttribute('data-r')
-                          const cAttr = el?.getAttribute('data-c')
-                          if (rAttr != null && cAttr != null) {
-                            continueSelect(parseInt(rAttr), parseInt(cAttr))
-                          }
-                        }}
-                        onTouchEnd={(e) => {
-                          e.preventDefault()
-                          endSelect()
-                        }}
-                        data-r={r}
-                        data-c={c}
-                        className={[
-                          'w-7 h-7 min-[350px]:w-8 min-[350px]:h-8 min-[380px]:w-9 min-[380px]:h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xs min-[350px]:text-sm sm:text-base font-mono font-bold cursor-pointer border border-black/[0.03] transition-all touch-none',
-                          isFound ? 'bg-green-100 text-green-700' : '',
-                          isUnfound ? 'bg-orange-200 text-orange-900 ring-1 ring-orange-400' : '',
-                          isSelecting_ ? 'bg-indigo-500 text-white z-10 scale-105 rounded-sm shadow-md' : '',
-                          !isFound && !isUnfound && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
-                        ].join(' ')}
-                        style={{ width: '100%', height: '100%', aspectRatio: '1/1' }}
-                      >
-                        {letter}
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 w-full lg:items-center">
+        <div className="w-full lg:flex-1 min-w-0 flex justify-center items-center">
+          <div
+            className="select-none touch-none border-2 border-black/10 rounded-2xl overflow-hidden shadow-md bg-white
+              aspect-square w-full max-w-[min(100%,560px)] mx-auto
+              min-h-[min(calc(100vw-2.5rem),420px)] sm:min-h-[460px]
+              lg:min-h-[500px] lg:min-w-[500px] lg:max-w-none"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+            }}
+            onMouseLeave={endSelect}
+          >
+            {grid.map((row: string[], r: number) =>
+              row.map((letter: string, c: number) => {
+                const key = getCell(r, c)
+                const isFound = highlighted.has(key)
+                const isUnfound = unfoundHighlighted.has(key)
+                const isSelecting_ = selecting.some(([sr, sc]) => sr === r && sc === c)
+                return (
+                  <div
+                    key={key}
+                    onMouseDown={() => startSelect(r, c)}
+                    onMouseEnter={() => continueSelect(r, c)}
+                    onMouseUp={endSelect}
+                    onTouchStart={(e) => {
+                      e.preventDefault()
+                      startSelect(r, c)
+                    }}
+                    onTouchMove={(e) => {
+                      const touch = e.touches[0]
+                      const el = document.elementFromPoint(touch.clientX, touch.clientY)
+                      const rAttr = el?.getAttribute('data-r')
+                      const cAttr = el?.getAttribute('data-c')
+                      if (rAttr != null && cAttr != null) {
+                        continueSelect(parseInt(rAttr), parseInt(cAttr))
+                      }
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault()
+                      endSelect()
+                    }}
+                    data-r={r}
+                    data-c={c}
+                    className={[
+                      'flex items-center justify-center font-mono font-bold cursor-pointer border border-black/[0.04] transition-colors touch-none',
+                      'text-base sm:text-lg lg:text-xl xl:text-2xl',
+                      isFound ? 'bg-green-100 text-green-700' : '',
+                      isUnfound ? 'bg-orange-200 text-orange-900 ring-1 ring-inset ring-orange-400' : '',
+                      isSelecting_ ? 'bg-indigo-500 text-white z-10 shadow-inner' : '',
+                      !isFound && !isUnfound && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white' : '',
+                    ].join(' ')}
+                  >
+                    {letter}
+                  </div>
+                )
+              })
+            )}
           </div>
-          <p className="text-[10px] text-black/30 font-medium uppercase tracking-wider block lg:hidden">↔ Scroll to see full grid</p>
         </div>
 
-        <div className="bg-white/80 border border-black/10 rounded-[28px] p-6 w-full lg:max-w-xs shadow-sm backdrop-blur-md">
+        <div className="bg-white/80 border border-black/10 rounded-[28px] p-6 w-full lg:w-80 lg:shrink-0 shadow-sm backdrop-blur-md lg:self-center">
           <h3 className="font-bold text-black mb-4 flex items-center justify-between">
             <span className="text-lg tracking-tight">Word List</span>
             <span className="text-xs font-medium bg-black/5 px-2 py-1 rounded-full text-black/40">{found.length}/{words.length}</span>

@@ -12,7 +12,7 @@ export default async function WordSearchPage({ params }: { params: Promise<{ id:
 
   return (
     <PageMotion>
-      <div className="mx-auto max-w-5xl space-y-5">
+      <div className="mx-auto max-w-6xl space-y-5">
         <div className="motion-item">
           <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP!} format="horizontal" />
         </div>
