@@ -135,7 +135,7 @@ const JIGSAW_IMAGES = [
 // --- RUNNER ---
 
 async function run() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   console.log(`🚀 Generating daily puzzles for ${today}...`);
 
   // Delete existing puzzles for today to refresh them

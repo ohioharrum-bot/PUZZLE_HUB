@@ -4,18 +4,41 @@ import { Puzzle, WordSearchPuzzleData } from '@/types/puzzle'
 import { saveProgressLocally } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
 
+const TIME_LIMIT_SECONDS = 600
+
 export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   const { grid, words, solution } = puzzle.puzzle_data as WordSearchPuzzleData
   const [found, setFound] = useState<string[]>([])
   const [startPos, setStartPos] = useState<[number, number] | null>(null)
   const [selecting, setSelecting] = useState<[number,number][]>([])
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set())
+  const [unfoundHighlighted, setUnfoundHighlighted] = useState<Set<string>>(new Set())
   const [isSelecting, setIsSelecting] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [solved, setSolved] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const [failReason, setFailReason] = useState<'timeout' | 'giveup' | null>(null)
   const [hasSaved, setHasSaved] = useState(false)
 
   const getCell = (r: number, c: number) => `${r}-${c}`
+  const gameOver = solved || failed
+
+  const revealUnfoundWords = () => {
+    const cells = new Set<string>()
+    solution.forEach(sol => {
+      if (!found.includes(sol.word)) {
+        sol.positions.forEach(([r, c]) => cells.add(getCell(r, c)))
+      }
+    })
+    setUnfoundHighlighted(cells)
+  }
+
+  const endGameAsFailed = (reason: 'timeout' | 'giveup') => {
+    if (gameOver) return
+    setFailReason(reason)
+    setFailed(true)
+    revealUnfoundWords()
+  }
 
   // Restore from localStorage or DB
   useEffect(() => {
@@ -46,20 +69,26 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   }, [puzzle.id, puzzle.completed, words, solution])
 
   useEffect(() => {
-    if (solved) return
+    if (gameOver) return
     const t = setInterval(() => setSeconds(s => s + 1), 1000)
     return () => clearInterval(t)
-  }, [solved])
+  }, [gameOver])
+
+  useEffect(() => {
+    if (!gameOver && seconds >= TIME_LIMIT_SECONDS) {
+      endGameAsFailed('timeout')
+    }
+  }, [seconds, gameOver])
 
   const startSelect = (r: number, c: number) => {
-    if (solved) return
+    if (gameOver) return
     setIsSelecting(true)
     setStartPos([r, c])
     setSelecting([[r, c]])
   }
 
   const continueSelect = (r: number, c: number) => {
-    if (!isSelecting || solved || !startPos) return
+    if (!isSelecting || gameOver || !startPos) return
     
     const [sr, sc] = startPos
     const dr = r - sr
@@ -67,7 +96,6 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
     const absDr = Math.abs(dr)
     const absDc = Math.abs(dc)
 
-    // Only allow horizontal, vertical, or 45-degree diagonal
     if (dr === 0 || dc === 0 || absDr === absDc) {
       const steps = Math.max(absDr, absDc)
       const stepR = dr === 0 ? 0 : dr / absDr
@@ -82,7 +110,7 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   }
 
   const endSelect = async () => {
-    if (!isSelecting || solved) return
+    if (!isSelecting || gameOver) return
     setIsSelecting(false)
     setStartPos(null)
     
@@ -132,6 +160,8 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   }
 
   const fmt = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
+  const timeRemaining = Math.max(0, TIME_LIMIT_SECONDS - seconds)
+  const missingWords = words.filter(w => !found.includes(w))
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
@@ -145,10 +175,23 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
             ✓ Solved!
           </span>
         )}
+        {failed && (
+          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
+            {failReason === 'giveup' ? 'Given up' : "Time's up"}
+          </span>
+        )}
       </div>
 
+      {!gameOver && (
+        <div className="flex items-center justify-between text-xs text-black/45">
+          <span>{fmt(timeRemaining)} remaining</span>
+          <button onClick={() => endGameAsFailed('giveup')} className="text-red-500 hover:underline font-medium">
+            Give up
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
-        {/* Grid Container */}
         <div className="w-full flex flex-col items-center lg:items-start gap-2">
           <div className="w-full overflow-x-auto pb-4 scrollbar-hide flex justify-center lg:justify-start">
             <div
@@ -159,7 +202,8 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                 <div key={r} className="flex">
                   {row.map((letter: string, c: number) => {
                     const key = getCell(r, c)
-                    const isHighlighted = highlighted.has(key)
+                    const isFound = highlighted.has(key)
+                    const isUnfound = unfoundHighlighted.has(key)
                     const isSelecting_ = selecting.some(([sr, sc]) => sr === r && sc === c)
                     return (
                       <div
@@ -176,7 +220,7 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                           const el = document.elementFromPoint(touch.clientX, touch.clientY)
                           const rAttr = el?.getAttribute('data-r')
                           const cAttr = el?.getAttribute('data-c')
-                          if (rAttr !== null && cAttr !== null && rAttr !== undefined && cAttr !== undefined) {
+                          if (rAttr != null && cAttr != null) {
                             continueSelect(parseInt(rAttr), parseInt(cAttr))
                           }
                         }}
@@ -188,9 +232,10 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                         data-c={c}
                         className={[
                           'w-7 h-7 min-[350px]:w-8 min-[350px]:h-8 min-[380px]:w-9 min-[380px]:h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xs min-[350px]:text-sm sm:text-base font-mono font-bold cursor-pointer border border-black/[0.03] transition-all touch-none',
-                          isHighlighted ? 'bg-green-100 text-green-700' : '',
+                          isFound ? 'bg-green-100 text-green-700' : '',
+                          isUnfound ? 'bg-orange-200 text-orange-900 ring-1 ring-orange-400' : '',
                           isSelecting_ ? 'bg-indigo-500 text-white z-10 scale-105 rounded-sm shadow-md' : '',
-                          !isHighlighted && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
+                          !isFound && !isUnfound && !isSelecting_ ? 'hover:bg-indigo-50 text-slate-900 bg-white/70' : '',
                         ].join(' ')}
                         style={{ width: '100%', height: '100%', aspectRatio: '1/1' }}
                       >
@@ -205,7 +250,6 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
           <p className="text-[10px] text-black/30 font-medium uppercase tracking-wider block lg:hidden">↔ Scroll to see full grid</p>
         </div>
 
-        {/* Word List Container */}
         <div className="bg-white/80 border border-black/10 rounded-[28px] p-6 w-full lg:max-w-xs shadow-sm backdrop-blur-md">
           <h3 className="font-bold text-black mb-4 flex items-center justify-between">
             <span className="text-lg tracking-tight">Word List</span>
@@ -218,6 +262,8 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
                 className={`text-xs sm:text-sm font-mono p-2.5 rounded-xl border-2 transition-all flex items-center justify-center lg:justify-start ${
                   found.includes(word) 
                   ? 'bg-green-50 border-green-200 text-green-700 line-through opacity-50' 
+                  : failed
+                  ? 'bg-orange-50 border-orange-300 text-orange-800 font-semibold'
                   : 'bg-white border-black/5 text-black/70 shadow-sm'
                 }`}
               >
@@ -229,6 +275,17 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
             <div className="mt-6 p-4 bg-green-500 text-white rounded-[20px] text-center font-bold text-sm shadow-lg shadow-green-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
               🎉 Puzzle Complete!
               <div className="text-xs font-normal opacity-90 mt-1">Found all {words.length} words in {fmt(seconds)}</div>
+            </div>
+          )}
+          {failed && (
+            <div className="mt-6 p-4 bg-orange-50 border-2 border-orange-200 text-orange-900 rounded-[20px] text-center text-sm">
+              <p className="font-bold mb-1">{failReason === 'giveup' ? 'You gave up' : 'Out of time!'}</p>
+              <p className="text-xs opacity-80 mb-2">Unfound words are highlighted in orange on the grid.</p>
+              {missingWords.length > 0 && (
+                <p className="text-xs font-medium">
+                  Missing: {missingWords.join(', ')}
+                </p>
+              )}
             </div>
           )}
         </div>

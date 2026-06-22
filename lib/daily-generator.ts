@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
-import { generateSudoku, generateWordSearch, generateLogicPuzzle } from './puzzle-generators'
+import { generateSudoku, generateWordSearch, generateLogicPuzzle, LOGIC_PUZZLE_POOLS, getLogicPuzzleBankIndex, WORD_BANKS } from './puzzle-generators'
 import { generateAILogicPuzzle, generateAIWordSearchTheme, generateAIWordGuesser } from './ai-generator'
 import { createAdminClient } from './supabase-admin'
+import { getTodayDateEastern, getYesterdayDateEastern } from './daily-seed'
 import type { PuzzleType } from '@/types/puzzle'
 
 const JIGSAW_IMAGES = [
@@ -12,121 +13,166 @@ const JIGSAW_IMAGES = [
   "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80"
 ]
 
-export async function generateAndStoreDailyPuzzles() {
+async function getYesterdayPuzzleData(type: PuzzleType, today: string) {
   const supabase = createAdminClient()
-  const today = new Date().toISOString().split('T')[0]
-  const types: PuzzleType[] = ['sudoku', 'wordsearch', 'logic', 'wordle', 'jigsaw']
-  const results = []
+  const yesterday = getYesterdayDateEastern(today)
+  const { data } = await supabase
+    .from('puzzles')
+    .select('puzzle_data')
+    .eq('is_daily', true)
+    .eq('daily_date', yesterday)
+    .eq('type', type)
+    .maybeSingle()
+  return data?.puzzle_data ?? null
+}
 
-  for (const type of types) {
-    // Check if daily already exists for today to avoid duplicates
-    const { data: existing } = await supabase
+function getYesterdayWordSearchAvoidBank(yesterdayData: { words?: string[] } | null, difficulty: 'easy' | 'medium' | 'hard') {
+  if (!yesterdayData?.words?.length) return undefined
+  const bankList = WORD_BANKS[difficulty]
+  const idx = bankList.findIndex(bank => yesterdayData.words!.some(w => bank.includes(w)))
+  return idx >= 0 ? idx : undefined
+}
+
+async function buildDailyPuzzleData(type: PuzzleType, today: string) {
+  const difficulty = 'medium' as const
+  let puzzleData: any
+  let solutionData: any = null
+  let title = `Daily ${type === 'wordle' ? 'Word Guesser' : type.replace('-', ' ').charAt(0).toUpperCase() + type.replace('-', ' ').slice(1)} - ${today}`
+
+  if (type === 'sudoku') {
+    const { puzzle, solution } = generateSudoku(difficulty)
+    puzzleData = puzzle
+    solutionData = { solution }
+  } else if (type === 'wordsearch') {
+    const yesterdayData = await getYesterdayPuzzleData('wordsearch', today)
+    const avoidBankIndex = getYesterdayWordSearchAvoidBank(yesterdayData, difficulty)
+
+    if (process.env.GROQ_API_KEY) {
+      try {
+        console.log(`🤖 Generating AI WordSearch for ${today}...`)
+        const aiTheme = await generateAIWordSearchTheme(difficulty)
+        puzzleData = generateWordSearch(difficulty, aiTheme.words, today)
+        title = `Daily Word Search: ${aiTheme.theme} - ${today}`
+        console.log('✅ AI WordSearch generated')
+      } catch (e) {
+        console.error('❌ AI WordSearch failed, falling back:', e)
+        puzzleData = generateWordSearch(difficulty, undefined, today, avoidBankIndex)
+        title = `Daily Word Search - ${today}`
+      }
+    } else {
+      console.warn('⚠️ GROQ_API_KEY missing, using seeded WordSearch bank')
+      puzzleData = generateWordSearch(difficulty, undefined, today, avoidBankIndex)
+      title = `Daily Word Search - ${today}`
+    }
+  } else if (type === 'logic') {
+    const yesterdayData = await getYesterdayPuzzleData('logic', today)
+    const avoidQuestion = yesterdayData?.question
+
+    if (process.env.GROQ_API_KEY) {
+      try {
+        console.log(`🤖 Generating AI Logic Puzzle for ${today}...`)
+        puzzleData = await generateAILogicPuzzle(difficulty)
+        title = `Daily Riddle - ${today}`
+        console.log('✅ AI Logic Puzzle generated')
+      } catch (e) {
+        console.error('❌ AI Logic failed, falling back:', e)
+        puzzleData = generateLogicPuzzle(difficulty, today, avoidQuestion)
+        title = `Daily Riddle - ${today}`
+      }
+    } else {
+      console.warn('⚠️ GROQ_API_KEY missing, using seeded Logic bank')
+      puzzleData = generateLogicPuzzle(difficulty, today, avoidQuestion)
+      title = `Daily Riddle - ${today}`
+    }
+  } else if (type === 'wordle') {
+    if (process.env.GROQ_API_KEY) {
+      try {
+        console.log(`🤖 Generating AI Word Guesser for ${today}...`)
+        const aiWord = await generateAIWordGuesser(difficulty)
+        const sanitizedWord = (aiWord.word || 'PUZZLE').trim().toUpperCase()
+        puzzleData = { solution: sanitizedWord }
+        title = `Daily Word Guesser: ${aiWord.theme_hint || '5-Letter Word'} - ${today}`
+        console.log('✅ AI Word Guesser generated')
+      } catch (e) {
+        console.error('❌ AI Word Guesser failed, falling back:', e)
+        puzzleData = { solution: 'PUZZLE' }
+        title = `Daily Word Guesser - ${today}`
+      }
+    } else {
+      puzzleData = { solution: 'PUZZLE' }
+      title = `Daily Word Guesser - ${today}`
+    }
+  } else if (type === 'jigsaw') {
+    const imageIndex = getLogicPuzzleBankIndex('easy', today) % JIGSAW_IMAGES.length
+    const imageUrl = JIGSAW_IMAGES[imageIndex]
+    puzzleData = { image_url: imageUrl, pieces: 24 }
+    title = `Daily Jigsaw - ${today}`
+  }
+
+  return { puzzleData, solutionData, title }
+}
+
+export async function ensureDailyPuzzleForType(type: PuzzleType, today = getTodayDateEastern()) {
+  const supabase = createAdminClient()
+
+  const { data: existing } = await supabase
+    .from('puzzles')
+    .select('*')
+    .eq('is_daily', true)
+    .eq('daily_date', today)
+    .eq('type', type)
+    .maybeSingle()
+
+  if (existing) return { puzzle: existing, created: false }
+
+  const { puzzleData, solutionData, title } = await buildDailyPuzzleData(type, today)
+
+  const newPuzzle = {
+    id: uuidv4(),
+    title,
+    type,
+    difficulty: 'medium',
+    puzzle_data: puzzleData,
+    solution_data: solutionData,
+    is_daily: true,
+    daily_date: today,
+    play_count: 0
+  }
+
+  const { data, error } = await supabase
+    .from('puzzles')
+    .insert(newPuzzle)
+    .select()
+    .single()
+
+  if (error) {
+    const { data: retry } = await supabase
       .from('puzzles')
-      .select('id')
+      .select('*')
       .eq('is_daily', true)
       .eq('daily_date', today)
       .eq('type', type)
       .maybeSingle()
+    if (retry) return { puzzle: retry, created: false }
+    throw new Error(error.message)
+  }
 
-    if (existing) {
-      results.push({ type, status: 'already_exists', id: existing.id })
-      continue
-    }
+  return { puzzle: data, created: true }
+}
 
-    let puzzleData: any
-    let solutionData: any = null
-    let title = `Daily ${type === 'wordle' ? 'Word Guesser' : type.replace('-', ' ').charAt(0).toUpperCase() + type.replace('-', ' ').slice(1)} - ${today}`
+export async function generateAndStoreDailyPuzzles() {
+  const today = getTodayDateEastern()
+  const types: PuzzleType[] = ['sudoku', 'wordsearch', 'logic', 'wordle', 'jigsaw']
+  const results = []
 
+  for (const type of types) {
     try {
-      if (type === 'sudoku') {
-        const { puzzle, solution } = generateSudoku('medium')
-        puzzleData = puzzle
-        solutionData = { solution }
-      } else if (type === 'wordsearch') {
-        if (process.env.GROQ_API_KEY) {
-          try {
-            console.log(`🤖 Generating AI WordSearch for ${today}...`)
-            const aiTheme = await generateAIWordSearchTheme('medium')
-            puzzleData = generateWordSearch('medium', aiTheme.words)
-            title = `Daily Word Search: ${aiTheme.theme} - ${today}`
-            console.log('✅ AI WordSearch generated')
-          } catch (e) {
-            console.error('❌ AI WordSearch failed, falling back:', e)
-            puzzleData = generateWordSearch('medium')
-            title = `Daily Word Search - ${today}`
-          }
-        } else {
-          console.warn('⚠️ GROQ_API_KEY missing, using local WordSearch bank')
-          puzzleData = generateWordSearch('medium')
-          title = `Daily Word Search - ${today}`
-        }
-      } else if (type === 'logic') {
-        if (process.env.GROQ_API_KEY) {
-          try {
-            console.log(`🤖 Generating AI Logic Puzzle for ${today}...`)
-            puzzleData = await generateAILogicPuzzle('medium')
-            title = `Daily Riddle - ${today}`
-            console.log('✅ AI Logic Puzzle generated')
-          } catch (e) {
-            console.error('❌ AI Logic failed, falling back:', e)
-            puzzleData = generateLogicPuzzle('medium')
-            title = `Daily Riddle - ${today}`
-          }
-        } else {
-          console.warn('⚠️ GROQ_API_KEY missing, using local Logic bank')
-          puzzleData = generateLogicPuzzle('medium')
-          title = `Daily Riddle - ${today}`
-        }
-      } else if (type === 'wordle') {
-        if (process.env.GROQ_API_KEY) {
-          try {
-            console.log(`🤖 Generating AI Word Guesser for ${today}...`)
-            const aiWord = await generateAIWordGuesser('medium')
-            // Ensure the word is sanitized
-            const sanitizedWord = (aiWord.word || 'PUZZLE').trim().toUpperCase()
-            puzzleData = { solution: sanitizedWord }
-            title = `Daily Word Guesser: ${aiWord.theme_hint || '5-Letter Word'} - ${today}`
-            console.log('✅ AI Word Guesser generated')
-          } catch (e) {
-            console.error('❌ AI Word Guesser failed, falling back:', e)
-            puzzleData = { solution: 'PUZZLE' }
-            title = `Daily Word Guesser - ${today}`
-          }
-        } else {
-          puzzleData = { solution: 'PUZZLE' }
-          title = `Daily Word Guesser - ${today}`
-        }
-      }
- else if (type === 'jigsaw') {
-        const imageUrl = JIGSAW_IMAGES[Math.floor(Math.random() * JIGSAW_IMAGES.length)]
-        puzzleData = { image_url: imageUrl, pieces: 24 }
-        title = `Daily Jigsaw - ${today}`
-      }
-
-      const newPuzzle = {
-        id: uuidv4(),
-        title,
+      const { puzzle, created } = await ensureDailyPuzzleForType(type, today)
+      results.push({
         type,
-        difficulty: 'medium',
-        puzzle_data: puzzleData,
-        solution_data: solutionData,
-        is_daily: true,
-        daily_date: today,
-        play_count: 0
-      }
-
-      const { data, error } = await supabase
-        .from('puzzles')
-        .insert(newPuzzle)
-        .select()
-        .single()
-
-      if (error) {
-        console.error(`Error creating daily ${type}:`, error.message)
-        results.push({ type, status: 'error', error: error.message })
-      } else {
-        results.push({ type, status: 'created', id: data.id })
-      }
+        status: created ? 'created' : 'already_exists',
+        id: puzzle.id
+      })
     } catch (err: any) {
       console.error(`Unexpected error in daily ${type}:`, err.message)
       results.push({ type, status: 'error', error: err.message })
@@ -135,4 +181,3 @@ export async function generateAndStoreDailyPuzzles() {
 
   return results
 }
-

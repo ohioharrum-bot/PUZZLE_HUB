@@ -57,7 +57,7 @@ export default function ContactPage() {
             />
             <FAQItem 
               question="How often are daily puzzles updated?" 
-              answer="Daily puzzles for Sudoku, Word Search, and Jigsaw are refreshed every day at midnight UTC." 
+              answer="Daily puzzles for Sudoku, Word Search, and Jigsaw are refreshed every day at midnight US Eastern time." 
             />
             <FAQItem 
               question="Do I need an account to save my progress?" 

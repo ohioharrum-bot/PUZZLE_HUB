@@ -5,15 +5,16 @@ import { getPuzzles } from '@/lib/puzzle-data'
 import PageMotion from '@/components/PageMotion'
 import AdSidebar from '@/components/AdSidebar'
 import Link from 'next/link'
+import { getTodayDateEastern } from '@/lib/daily-seed'
 
 export const revalidate = 60
 
 export default async function HomePage() {
   const puzzles = await getPuzzles()
 
+  const today = getTodayDateEastern()
   const allDaily = puzzles.filter(p => p.is_daily)
-  const latestDailyDate = allDaily[0]?.daily_date
-  const daily = allDaily.filter(p => p.daily_date === latestDailyDate)
+  const daily = allDaily.filter(p => p.daily_date === today)
   
   const byType = (type: string) => puzzles.filter(p => p.type === type && !p.is_daily).slice(0, 4)
 

@@ -139,7 +139,7 @@ async function seed() {
   console.log('🚀 Starting puzzle seed...');
   const newPuzzles = [];
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   ['easy', 'medium', 'hard'].forEach((diff, i) => {
     const data = generateSudoku(diff);
     newPuzzles.push({

@@ -21,6 +21,7 @@ export type LogicPuzzleData = {
   answer: string
   hint: string
   options: string[]
+  explanation?: string
 }
 
 export type JigsawPuzzleData = {

@@ -263,8 +263,20 @@ export default function WordGuesserGame({ puzzle }: { puzzle: Puzzle }) {
             {solved ? '🎉 Incredible!' : '😔 Out of guesses'}
           </h3>
           <p className="text-sm opacity-70 mb-4">
-            {solved ? `Solved in ${guesses.length} tries` : `The word was ${solution.toUpperCase()}`}
+            {solved ? `Solved in ${guesses.length} tries` : `The correct answer was: ${solution.toUpperCase()}`}
           </p>
+          {failed && (
+            <div className="flex justify-center gap-1.5 sm:gap-2 mb-4">
+              {solution.toUpperCase().split('').map((letter, i) => (
+                <div
+                  key={i}
+                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-lg sm:text-xl font-black rounded-lg border-2 bg-green-500 border-green-600 text-white"
+                >
+                  {letter}
+                </div>
+              ))}
+            </div>
+          )}
           <button 
             onClick={() => window.location.reload()}
             className="w-full py-3 rounded-xl bg-black text-white font-bold text-sm shadow-lg shadow-black/10"
