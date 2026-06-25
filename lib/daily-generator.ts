@@ -33,11 +33,33 @@ function getYesterdayWordSearchAvoidBank(yesterdayData: { words?: string[] } | n
   return idx >= 0 ? idx : undefined
 }
 
+function formatDateFriendly(dateString: string): string {
+  const parts = dateString.split('-').map(Number)
+  if (parts.length !== 3 || parts.some(isNaN)) return dateString
+  const [year, month, day] = parts
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ]
+  const monthName = months[month - 1] || ''
+  
+  let suffix = 'th'
+  if (day < 11 || day > 13) {
+    switch (day % 10) {
+      case 1: suffix = 'st'; break;
+      case 2: suffix = 'nd'; break;
+      case 3: suffix = 'rd'; break;
+    }
+  }
+  return `${monthName} ${day}${suffix}, ${year}`
+}
+
 async function buildDailyPuzzleData(type: PuzzleType, today: string) {
   const difficulty = 'medium' as const
   let puzzleData: any
   let solutionData: any = null
-  let title = `Daily ${type === 'wordle' ? 'Word Guesser' : type.replace('-', ' ').charAt(0).toUpperCase() + type.replace('-', ' ').slice(1)} - ${today}`
+  const dateFriendly = formatDateFriendly(today)
+  let title = `Daily ${type === 'wordle' ? 'Word Guesser' : type.replace('-', ' ').charAt(0).toUpperCase() + type.replace('-', ' ').slice(1)} - ${dateFriendly}`
 
   if (type === 'sudoku') {
     const { puzzle, solution } = generateSudoku(difficulty)
@@ -52,17 +74,17 @@ async function buildDailyPuzzleData(type: PuzzleType, today: string) {
         console.log(`🤖 Generating AI WordSearch for ${today}...`)
         const aiTheme = await generateAIWordSearchTheme(difficulty)
         puzzleData = generateWordSearch(difficulty, aiTheme.words, today)
-        title = `Daily Word Search: ${aiTheme.theme} - ${today}`
+        title = `Daily Word Search: ${aiTheme.theme} - ${dateFriendly}`
         console.log('✅ AI WordSearch generated')
       } catch (e) {
         console.error('❌ AI WordSearch failed, falling back:', e)
         puzzleData = generateWordSearch(difficulty, undefined, today, avoidBankIndex)
-        title = `Daily Word Search - ${today}`
+        title = `Daily Word Search - ${dateFriendly}`
       }
     } else {
       console.warn('⚠️ GROQ_API_KEY missing, using seeded WordSearch bank')
       puzzleData = generateWordSearch(difficulty, undefined, today, avoidBankIndex)
-      title = `Daily Word Search - ${today}`
+      title = `Daily Word Search - ${dateFriendly}`
     }
   } else if (type === 'logic') {
     const yesterdayData = await getYesterdayPuzzleData('logic', today)
@@ -72,17 +94,17 @@ async function buildDailyPuzzleData(type: PuzzleType, today: string) {
       try {
         console.log(`🤖 Generating AI Logic Puzzle for ${today}...`)
         puzzleData = await generateAILogicPuzzle(difficulty)
-        title = `Daily Riddle - ${today}`
+        title = `Daily Riddle - ${dateFriendly}`
         console.log('✅ AI Logic Puzzle generated')
       } catch (e) {
         console.error('❌ AI Logic failed, falling back:', e)
         puzzleData = generateLogicPuzzle(difficulty, today, avoidQuestion)
-        title = `Daily Riddle - ${today}`
+        title = `Daily Riddle - ${dateFriendly}`
       }
     } else {
       console.warn('⚠️ GROQ_API_KEY missing, using seeded Logic bank')
       puzzleData = generateLogicPuzzle(difficulty, today, avoidQuestion)
-      title = `Daily Riddle - ${today}`
+      title = `Daily Riddle - ${dateFriendly}`
     }
   } else if (type === 'wordle') {
     if (process.env.GROQ_API_KEY) {
@@ -91,22 +113,22 @@ async function buildDailyPuzzleData(type: PuzzleType, today: string) {
         const aiWord = await generateAIWordGuesser(difficulty)
         const sanitizedWord = (aiWord.word || 'PUZZLE').trim().toUpperCase()
         puzzleData = { solution: sanitizedWord }
-        title = `Daily Word Guesser: ${aiWord.theme_hint || '5-Letter Word'} - ${today}`
+        title = `Daily Word Guesser: ${aiWord.theme_hint || '5-Letter Word'} - ${dateFriendly}`
         console.log('✅ AI Word Guesser generated')
       } catch (e) {
         console.error('❌ AI Word Guesser failed, falling back:', e)
         puzzleData = { solution: 'PUZZLE' }
-        title = `Daily Word Guesser - ${today}`
+        title = `Daily Word Guesser - ${dateFriendly}`
       }
     } else {
       puzzleData = { solution: 'PUZZLE' }
-      title = `Daily Word Guesser - ${today}`
+      title = `Daily Word Guesser - ${dateFriendly}`
     }
   } else if (type === 'jigsaw') {
     const imageIndex = getLogicPuzzleBankIndex('easy', today) % JIGSAW_IMAGES.length
     const imageUrl = JIGSAW_IMAGES[imageIndex]
     puzzleData = { image_url: imageUrl, pieces: 24 }
-    title = `Daily Jigsaw - ${today}`
+    title = `Daily Jigsaw - ${dateFriendly}`
   }
 
   return { puzzleData, solutionData, title }

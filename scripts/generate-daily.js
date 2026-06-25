@@ -134,9 +134,31 @@ const JIGSAW_IMAGES = [
 
 // --- RUNNER ---
 
+function formatDateFriendly(dateString) {
+  const parts = dateString.split('-').map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) return dateString;
+  const [year, month, day] = parts;
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const monthName = months[month - 1] || '';
+  
+  let suffix = 'th';
+  if (day < 11 || day > 13) {
+    switch (day % 10) {
+      case 1: suffix = 'st'; break;
+      case 2: suffix = 'nd'; break;
+      case 3: suffix = 'rd'; break;
+    }
+  }
+  return `${monthName} ${day}${suffix}, ${year}`;
+}
+
 async function run() {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-  console.log(`🚀 Generating daily puzzles for ${today}...`);
+  const dateFriendly = formatDateFriendly(today);
+  console.log(`🚀 Generating daily puzzles for ${today} (${dateFriendly})...`);
 
   // Delete existing puzzles for today to refresh them
   console.log('🧹 Clearing existing puzzles for today...');
@@ -148,7 +170,7 @@ async function run() {
   const sudokuData = generateSudoku();
   puzzles.push({
     id: uuidv4(),
-    title: `Daily Sudoku - ${today}`,
+    title: `Daily Sudoku - ${dateFriendly}`,
     type: 'sudoku',
     difficulty: 'medium',
     puzzle_data: sudokuData,
@@ -164,7 +186,7 @@ async function run() {
   const wsData = generateWordSearch(words);
   puzzles.push({
     id: uuidv4(),
-    title: theme ? `Daily Word Search: ${theme.theme} - ${today}` : `Daily Word Search - ${today}`,
+    title: theme ? `Daily Word Search: ${theme.theme} - ${dateFriendly}` : `Daily Word Search - ${dateFriendly}`,
     type: 'wordsearch',
     difficulty: 'medium',
     puzzle_data: wsData,
@@ -177,7 +199,7 @@ async function run() {
   const riddle = await generateAIRiddle();
   puzzles.push({
     id: uuidv4(),
-    title: `Daily Riddle - ${today}`,
+    title: `Daily Riddle - ${dateFriendly}`,
     type: 'logic',
     difficulty: 'medium',
     puzzle_data: riddle || { 
@@ -195,7 +217,7 @@ async function run() {
   const aiWord = await generateAIWord();
   puzzles.push({
     id: uuidv4(),
-    title: aiWord ? `Daily Word Guesser: ${aiWord.hint} - ${today}` : `Daily Word Guesser - ${today}`,
+    title: aiWord ? `Daily Word Guesser: ${aiWord.hint} - ${dateFriendly}` : `Daily Word Guesser - ${dateFriendly}`,
     type: 'wordle',
     difficulty: 'medium',
     puzzle_data: { solution: aiWord ? aiWord.word.toUpperCase() : 'CLOUD' },
@@ -208,7 +230,7 @@ async function run() {
   const imageUrl = JIGSAW_IMAGES[Math.floor(Math.random() * JIGSAW_IMAGES.length)];
   puzzles.push({
     id: uuidv4(),
-    title: `Daily Jigsaw - ${today}`,
+    title: `Daily Jigsaw - ${dateFriendly}`,
     type: 'jigsaw',
     difficulty: 'medium',
     puzzle_data: { image_url: imageUrl, pieces: 24 },
