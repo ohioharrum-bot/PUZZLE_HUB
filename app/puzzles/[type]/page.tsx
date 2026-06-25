@@ -1,6 +1,4 @@
 import AdBanner from '@/components/AdBanner'
-import AdSidebar from '@/components/AdSidebar'
-import PageMotion from '@/components/PageMotion'
 import PuzzleCard from '@/components/PuzzleCard'
 import { getPuzzles } from '@/lib/puzzle-data'
 import type { Puzzle, PuzzleType } from '@/types/puzzle'
@@ -44,41 +42,55 @@ export default async function PuzzleTypePage({ params }: { params: Promise<{ typ
   const puzzles = await getPuzzles({ type: mappedType as PuzzleType })
   const meta = PUZZLE_TYPES[type]
 
+  // Filter out daily puzzles from category page list
+  const nonDailyPuzzles = puzzles.filter(p => !p.is_daily)
+
   return (
-    <PageMotion>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="space-y-6">
-          <section className="motion-item w-full overflow-hidden rounded-[34px] border border-black/10 bg-white/60 px-5 py-8 shadow-sm backdrop-blur md:px-10 md:py-12">
-            <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.24em] text-black/35">Puzzle collection</p>
-            <h1 className="max-w-full text-3xl font-semibold leading-[1.05] tracking-[-0.03em] text-black sm:text-4xl md:text-6xl lg:max-w-3xl">
-              {meta.title}
-            </h1>
-            <p className="mt-4 max-w-full text-sm leading-6 text-black/50 md:text-base lg:max-w-2xl">{meta.description}</p>
-          </section>
+    <main className="main">
+      <div className="section-header">
+        <span className="section-title">Puzzle Collection</span>
+      </div>
 
-          <div className="motion-item">
-            <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP!} format="horizontal" />
+      <div className="featured-row" style={{ marginBottom: 40 }}>
+        <div className="featured-card blue" style={{ cursor: 'default' }}>
+          <div>
+            <div className="featured-label">{meta.title} Puzzles</div>
+            <div className="featured-title" style={{ maxWidth: '600px' }}>{meta.description}</div>
           </div>
-
-          {puzzles.length ? (
-            <section className="motion-item grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {puzzles.map((puzzle: Puzzle) => (
-                <PuzzleCard key={puzzle.id} puzzle={puzzle} />
-              ))}
-            </section>
-          ) : (
-            <div className="motion-item rounded-[24px] border border-black/10 bg-white/65 p-8 text-center text-sm text-black/45">
-              No {meta.title.toLowerCase()} puzzles have been added yet.
-            </div>
-          )}
-
-          <div className="motion-item">
-            <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM!} format="horizontal" />
+          <div>
+            <div className="featured-meta">{nonDailyPuzzles.length} puzzles available</div>
           </div>
         </div>
-        <AdSidebar />
       </div>
-    </PageMotion>
+
+      <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP!} format="horizontal" />
+
+      <div className="section-header" style={{ marginTop: 24 }}>
+        <span className="section-title">All {meta.title} Puzzles</span>
+      </div>
+
+      {nonDailyPuzzles.length ? (
+        <div className="puzzle-grid">
+          {nonDailyPuzzles.map((puzzle: Puzzle) => (
+            <PuzzleCard key={puzzle.id} puzzle={puzzle} />
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          textAlign: 'center',
+          padding: '48px 20px',
+          background: 'var(--white)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--gray-200)',
+          color: 'var(--gray-600)',
+          fontSize: '14px'
+        }}>
+          No {meta.title.toLowerCase()} puzzles have been added yet.
+        </div>
+      )}
+
+      <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM!} format="rectangle" />
+    </main>
   )
 }
 

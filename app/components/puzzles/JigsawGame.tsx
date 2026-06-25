@@ -4,6 +4,7 @@ import { JigsawPuzzleData, Puzzle } from '@/types/puzzle'
 import Image from 'next/image'
 import { saveProgressLocally } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
+import { GameNav } from '@/components/layout/Header'
 
 export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
   const data = puzzle.puzzle_data as JigsawPuzzleData
@@ -110,147 +111,197 @@ export default function JigsawGame({ puzzle }: { puzzle: Puzzle }) {
   }
 
   const fmt = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
+  const placedCount = positions.filter((p, i) => p === i).length
+  const remainingCount = piecesCount - placedCount
+  const progressPct = Math.round((placedCount / piecesCount) * 100)
+
+  const shufflePieces = () => {
+    const arr = Array.from({ length: piecesCount }, (_, i) => i)
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    setPositions(arr)
+    setSelectedSlot(null)
+    setSolved(false)
+    setSeconds(0)
+  }
 
   return (
-    <div className="bg-white/80 border border-black/10 rounded-[32px] p-4 sm:p-8 shadow-sm overflow-hidden backdrop-blur-md">
-      <div className="mb-6 flex items-center justify-between text-[10px] font-bold text-black/40 uppercase tracking-[0.2em]">
-        <div className="flex items-center gap-2 bg-black/5 px-3 py-1.5 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-          {fmt(seconds)}
-        </div>
-        <div className="flex gap-4">
-          <span>{piecesCount} Pieces</span>
-          <span className="text-orange-600/70">{puzzle.difficulty}</span>
-        </div>
-      </div>
-
-      <div className="relative group mx-auto max-w-full">
-        {data.image_url ? (
-          <div className="relative rounded-2xl overflow-hidden border-2 border-black/10 aspect-[3/2] bg-gray-100 shadow-inner">
-            <Image
-              src={data.image_url}
-              alt={puzzle.title}
-              fill
-              unoptimized
-              className={`object-cover transition-all duration-700 ${solved ? 'opacity-100' : 'opacity-10 grayscale'}`}
-            />
-            {!solved && (
-              <div 
-                className={`absolute inset-0 grid gap-0.5 p-0.5`}
-                style={{ 
-                  gridTemplateColumns: `repeat(${cols}, 1fr)`,
-                  gridTemplateRows: `repeat(${rows}, 1fr)` 
-                }}
-              >
-                {positions.map((pieceIdx, slotIdx) => {
-                  const pieceCol = pieceIdx % cols
-                  const pieceRow = Math.floor(pieceIdx / cols)
-                  const bgX = (pieceCol / (cols - 1)) * 100
-                  const bgY = (pieceRow / (rows - 1)) * 100
-                  const isLocked = autoLock && isPieceCorrect(slotIdx, positions)
-                  const isSelected = selectedSlot === slotIdx
-
-                  return (
-                    <div
-                      key={slotIdx}
-                      onClick={() => handleSlotClick(slotIdx)}
-                      className={`relative border transition-all duration-200 rounded-sm shadow-sm flex items-center justify-center cursor-pointer ${
-                        isLocked
-                          ? 'border-green-500/50 z-0'
-                          : isSelected
-                            ? 'border-orange-500 ring-2 ring-orange-400 z-20 scale-105 shadow-xl'
-                            : 'border-white/10 hover:border-white/40 hover:z-10 hover:shadow-xl'
-                      }`}
-                      style={{
-                        backgroundImage: `url(${data.image_url})`,
-                        backgroundSize: `${cols * 100}% ${rows * 100}%`,
-                        backgroundPosition: `${bgX}% ${bgY}%`,
-                      }}
-                    >
-                      {isLocked && (
-                        <div className="bg-green-500/80 text-white rounded-full p-0.5 scale-75 shadow-sm">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+    <div className="jigsaw-theme">
+      <GameNav
+        title={`${puzzle.title} – Jigsaw`}
+        meta={`Jigsaw · ${puzzle.difficulty} · ${piecesCount} pieces`}
+        difficulty={puzzle.difficulty}
+        timer={fmt(seconds)}
+        backHref="/puzzles/jigsaw"
+        dark
+      />
+      <div className="game-wrapper game-wrapper-jigsaw">
+        <div className="pieces-panel">
+          <div className="panel-title">Pieces Remaining</div>
+          <div className="pieces-grid">
             {positions.map((pieceIdx, slotIdx) => {
-              const isLocked = autoLock && isPieceCorrect(slotIdx, positions)
-              const isSelected = selectedSlot === slotIdx
+              const isPlaced = pieceIdx === slotIdx
+              if (isPlaced) return null
+              const colorClass = `piece-${(pieceIdx % 9) + 1}`
               return (
                 <div
                   key={slotIdx}
+                  className={`piece ${colorClass}${selectedSlot === slotIdx ? ' dragging' : ''}`}
                   onClick={() => handleSlotClick(slotIdx)}
-                  className={`aspect-square rounded-2xl border-2 sm:border-4 transition-all flex items-center justify-center text-lg sm:text-xl font-black relative cursor-pointer ${
-                    isLocked || (pieceIdx === slotIdx && solved)
-                      ? 'bg-green-500 border-green-600 text-white opacity-80 scale-95 cursor-default'
-                      : isSelected
-                        ? 'bg-orange-500 border-orange-600 text-white scale-110 rotate-2 z-20 shadow-2xl'
-                        : 'bg-indigo-500 border-indigo-600 text-white shadow-lg hover:scale-105'
-                  }`}
                 >
-                  {pieceIdx + 1}
-                  {isLocked && (
-                    <div className="absolute top-1 right-1 bg-white/20 rounded-full p-0.5">
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                  )}
+                  <span className="piece-number">{pieceIdx + 1}</span>
                 </div>
               )
             })}
           </div>
-        )}
+          <div className="pieces-info">
+            <div className="pieces-info-row">
+              <span>Remaining</span>
+              <span className="pieces-info-val">{remainingCount} / {piecesCount}</span>
+            </div>
+            <div className="pieces-info-row">
+              <span>Placed</span>
+              <span className="pieces-info-val">{placedCount} / {piecesCount}</span>
+            </div>
+            <div className="pieces-info-row">
+              <span>Difficulty</span>
+              <span className="pieces-info-val capitalize">{puzzle.difficulty}</span>
+            </div>
+          </div>
+        </div>
 
-        {solved && (
-          <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-            <div className="bg-white/95 backdrop-blur-md px-10 py-6 rounded-[40px] shadow-2xl border-4 border-orange-500 scale-110 animate-in fade-in zoom-in duration-500">
-              <div className="text-center">
-                <p className="text-orange-500 font-black text-sm uppercase tracking-[0.3em] mb-1">Masterpiece!</p>
-                <h3 className="text-3xl font-black text-black">SOLVED!</h3>
+        <div className="canvas-area">
+          <div className="canvas-bg" />
+          {data.image_url ? (
+            <div
+              className="jigsaw-board"
+              style={{
+                backgroundImage: solved ? `url(${data.image_url})` : undefined,
+                backgroundSize: 'cover',
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gridTemplateRows: `repeat(${rows}, 1fr)`,
+              }}
+            >
+              {positions.map((pieceIdx, slotIdx) => {
+                const pieceCol = pieceIdx % cols
+                const pieceRow = Math.floor(pieceIdx / cols)
+                const bgX = cols > 1 ? (pieceCol / (cols - 1)) * 100 : 0
+                const bgY = rows > 1 ? (pieceRow / (rows - 1)) * 100 : 0
+                const isPlaced = pieceIdx === slotIdx
+                const isSelected = selectedSlot === slotIdx
+
+                return (
+                  <div
+                    key={slotIdx}
+                    onClick={() => handleSlotClick(slotIdx)}
+                    className={[
+                      'board-cell',
+                      isPlaced ? 'filled' : 'drop-target',
+                      isSelected ? 'drop-target' : '',
+                    ].filter(Boolean).join(' ')}
+                  >
+                    {!solved && (
+                      <div
+                        className="board-cell-piece"
+                        style={data.image_url ? {
+                          backgroundImage: `url(${data.image_url})`,
+                          backgroundSize: `${cols * 100}% ${rows * 100}%`,
+                          backgroundPosition: `${bgX}% ${bgY}%`,
+                        } : { background: `hsl(${(pieceIdx * 40) % 360}, 70%, 50%)` }}
+                      />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div
+              className="jigsaw-board"
+              style={{
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gridTemplateRows: `repeat(${rows}, 1fr)`,
+              }}
+            >
+              {positions.map((pieceIdx, slotIdx) => {
+                const isPlaced = pieceIdx === slotIdx
+                const isSelected = selectedSlot === slotIdx
+                return (
+                  <div
+                    key={slotIdx}
+                    onClick={() => handleSlotClick(slotIdx)}
+                    className={[
+                      'board-cell',
+                      isPlaced ? 'filled' : 'drop-target',
+                      isSelected ? 'drop-target' : '',
+                    ].filter(Boolean).join(' ')}
+                  >
+                    <div
+                      className="board-cell-piece"
+                      style={{ background: `hsl(${(pieceIdx * 40) % 360}, 70%, 50%)` }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {solved && (
+            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+              <div className="bg-white/95 backdrop-blur-md px-10 py-6 rounded-2xl shadow-2xl border-4 border-orange-500">
+                <p className="text-orange-500 font-black text-sm uppercase tracking-widest mb-1 text-center">Masterpiece!</p>
+                <h3 className="text-3xl font-black text-black text-center">SOLVED!</h3>
+              </div>
+            </div>
+          )}
+
+          <div className="canvas-controls">
+            <button type="button" className="canvas-btn" onClick={() => setAutoLock(!autoLock)}>
+              {autoLock ? '🔒 Auto-lock ON' : '🔓 Auto-lock OFF'}
+            </button>
+            <button type="button" className="canvas-btn" style={{ background: '#f59e0b', borderColor: '#f59e0b', color: '#000' }} onClick={shufflePieces}>
+              Shuffle Pieces
+            </button>
+          </div>
+        </div>
+
+        <div className="right-panel">
+          <div className="sidebar-card">
+            <div className="sidebar-card-title">Progress</div>
+            <div className="progress-bar-track">
+              <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            <div className="progress-stats">
+              <div className="prog-stat">
+                <div className="prog-stat-num">{placedCount}</div>
+                <div className="prog-stat-label">Placed</div>
+              </div>
+              <div className="prog-stat">
+                <div className="prog-stat-num">{remainingCount}</div>
+                <div className="prog-stat-label">Left</div>
+              </div>
+              <div className="prog-stat">
+                <div className="prog-stat-num">{progressPct}%</div>
+                <div className="prog-stat-label">Done</div>
               </div>
             </div>
           </div>
-        )}
-      </div>
 
-      <div className="mt-8 flex flex-col items-center gap-4">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setAutoLock(!autoLock)}
-            className={`px-5 py-2.5 rounded-2xl text-[10px] font-bold transition-all uppercase tracking-widest border ${
-              autoLock 
-                ? 'bg-green-500 border-green-600 text-white shadow-inner' 
-                : 'bg-black/5 border-black/5 text-black/40 hover:bg-black/10'
-            }`}
-          >
-            {autoLock ? '🔒 Auto-lock ON' : '🔓 Auto-lock OFF'}
-          </button>
-          <button
-            onClick={() => { 
-              const arr = Array.from({ length: piecesCount }, (_, i) => i)
-              for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]]
-              }
-              setPositions(arr)
-              setSelectedSlot(null)
-              setSolved(false)
-              setSeconds(0) 
-            }}
-            className="px-5 py-2.5 bg-black/5 border border-black/5 hover:bg-black hover:text-white rounded-2xl text-[10px] font-bold transition-all uppercase tracking-widest text-black/40"
-          >
-            Reset
-          </button>
+          {data.image_url && (
+            <div className="sidebar-card">
+              <div className="sidebar-card-title">Reference Image</div>
+              <div className="reference-img relative overflow-hidden">
+                <Image src={data.image_url} alt={puzzle.title} fill unoptimized className="object-cover" />
+              </div>
+            </div>
+          )}
+
+          <div className="ad-slot">
+            <div className="ad-label">Advertisement</div>
+            <span className="ad-size">300 × 200</span>
+          </div>
         </div>
-        <p className="text-[10px] text-black/30 font-medium uppercase tracking-wider text-center">
-          Tap two pieces to swap them
-        </p>
       </div>
     </div>
   )

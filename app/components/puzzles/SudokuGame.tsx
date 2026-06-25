@@ -3,11 +3,14 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Puzzle, SudokuPuzzleData } from '@/types/puzzle'
 import { formatTime, saveProgressLocally } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
+import { GameNav } from '@/components/layout/Header'
 
 export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
-  const puzzleData = puzzle.puzzle_data as SudokuPuzzleData
-  const initialGrid: number[][] = puzzleData.puzzle
-  const solution: number[][] = puzzleData.solution
+  const puzzleData = puzzle.puzzle_data as any
+  const initialGrid: number[][] = Array.isArray(puzzleData) ? puzzleData : (puzzleData.puzzle || [])
+  const solution: number[][] = (Array.isArray(puzzleData)
+    ? (puzzle.solution_data as any)?.solution
+    : (puzzleData.solution || (puzzle.solution_data as any)?.solution)) || []
 
   const [grid, setGrid] = useState<number[][]>(initialGrid.map(r => [...r]))
   const [selected, setSelected] = useState<[number, number] | null>(null)
@@ -173,167 +176,162 @@ export default function SudokuGame({ puzzle }: { puzzle: Puzzle }) {
     setSeconds(0)
   }
 
+  const filledCount = grid.reduce((acc, row) => acc + row.filter(n => n !== 0).length, 0)
+  const progressPct = Math.round((filledCount / 81) * 100)
+  const mistakeCount = Math.min(errors.size, 3)
+
   return (
-    <div className="flex flex-col items-center gap-5">
-      {/* Timer + difficulty */}
-      <div className="flex items-center gap-3 text-sm">
-        <span className="font-mono font-semibold text-black/70">{formatTime(seconds)}</span>
-        <span className="rounded-full border border-black/10 bg-white/60 px-3 py-1 text-xs capitalize text-black/50">
-          {puzzle.difficulty}
-        </span>
-        {solved && (
-          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-            ✓ Solved!
-          </span>
-        )}
-      </div>
-
-      {/* Solved banner */}
-      {solved && (
-        <div className="w-full rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-center">
-          <p className="text-lg font-semibold text-green-800">🎉 Puzzle Complete!</p>
-          <p className="text-sm text-green-600">
-            Finished in <span className="font-mono font-bold">{formatTime(seconds)}</span>
-          </p>
-          {saving && <p className="mt-1 text-xs text-green-500">Saving score…</p>}
-          {!saving && <p className="mt-1 text-xs text-green-500">Score saved to leaderboard ✓</p>}
-        </div>
-      )}
-
-      {/* Grid */}
-      <div className="w-full overflow-x-auto pb-2">
-        <div
-          className="grid grid-cols-9 overflow-hidden rounded-2xl border-2 border-black/20 shadow-sm bg-white min-w-[280px] max-w-[450px] mx-auto"
-          role="grid"
-          aria-label="Sudoku puzzle"
-          onKeyDown={handleKeyDown}
-        >
-          {grid.map((row, r) =>
-            row.map((cell, c) => {
-            const isInitial = initialGrid[r][c] !== 0
-            const isSelected = selected?.[0] === r && selected?.[1] === c
-            const isError = errors.has(`${r}-${c}`)
-            const isSameRow = selected && selected[0] === r
-            const isSameCol = selected && selected[1] === c
-            const isSameBox =
-              selected &&
-              Math.floor(selected[0] / 3) === Math.floor(r / 3) &&
-              Math.floor(selected[1] / 3) === Math.floor(c / 3)
-
-            const borderR = (c + 1) % 3 === 0 && c < 8
-              ? 'border-r-2 border-r-black/25'
-              : 'border-r border-r-black/10'
-            const borderB = (r + 1) % 3 === 0 && r < 8
-              ? 'border-b-2 border-b-black/25'
-              : 'border-b border-b-black/10'
-
-            return (
-              <div
-                key={`${r}-${c}`}
-                ref={el => { cellRefs.current[r][c] = el }}
-                tabIndex={isInitial || solved ? -1 : 0}
-                role="gridcell"
-                aria-label={`Row ${r + 1}, Column ${c + 1}`}
-                onFocus={() => setSelected([r, c])}
-                className={[
-                  'relative h-[32px] w-[32px] min-[360px]:h-9 min-[360px]:w-9 min-[400px]:h-10 min-[400px]:w-10 sm:h-12 sm:w-12 flex items-center justify-center text-sm min-[360px]:text-base sm:text-lg outline-none transition-colors select-none cursor-pointer',
-                  borderR, borderB,
-                  isSelected
-                    ? 'bg-indigo-500 text-white font-bold'
-                    : isSameBox || isSameRow || isSameCol
-                      ? 'bg-indigo-50'
-                      : 'bg-white/70',
-                  isInitial
-                    ? 'font-bold text-black/80 cursor-default'
-                    : 'text-indigo-600',
-                  isError && !isSelected ? 'bg-red-100 text-red-600' : '',
-                  solved ? 'bg-green-50 text-green-700' : '',
-                ].join(' ')}
-              >
-                {cell !== 0 ? (
-                  cell
-                ) : (
-                  <div className="grid grid-cols-3 grid-rows-3 h-full w-full p-0.5">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                      <div key={n} className="flex items-center justify-center text-[6px] min-[360px]:text-[7px] min-[400px]:text-[8px] leading-none text-indigo-400/80 font-medium">
-                        {candidates.get(`${r}-${c}`)?.has(n) ? n : ''}
-                      </div>
-                    ))}
-                  </div>
-                )}
+    <>
+      <GameNav
+        title={puzzle.title}
+        meta={`Sudoku · ${puzzle.difficulty}`}
+        difficulty={puzzle.difficulty}
+        timer={formatTime(seconds)}
+        backHref="/puzzles/sudoku"
+      />
+      <div className="game-wrapper game-wrapper-sudoku">
+        <div className="board-col">
+          {solved && (
+            <div className="result-box correct-result" style={{ width: '100%', maxWidth: 500, marginBottom: 16 }}>
+              <div className="result-text">
+                <span className="result-title correct-title">Puzzle complete!</span>
+                <span className="result-explanation">
+                  Finished in {formatTime(seconds)}{saving ? ' — saving score…' : ''}
+                </span>
               </div>
-            )
-          })
-        )}
+            </div>
+          )}
+
+          <div
+            className="sudoku-grid"
+            role="grid"
+            aria-label="Sudoku puzzle"
+            onKeyDown={handleKeyDown}
+          >
+            {grid.map((row, r) =>
+              row.map((cell, c) => {
+                const isInitial = initialGrid[r][c] !== 0
+                const isSelected = selected?.[0] === r && selected?.[1] === c
+                const isError = errors.has(`${r}-${c}`)
+                const isSameRow = selected && selected[0] === r
+                const isSameCol = selected && selected[1] === c
+                const isSameBox =
+                  selected &&
+                  Math.floor(selected[0] / 3) === Math.floor(r / 3) &&
+                  Math.floor(selected[1] / 3) === Math.floor(c / 3)
+                const isUserFilled = !isInitial && cell !== 0
+
+                return (
+                  <div
+                    key={`${r}-${c}`}
+                    ref={el => { cellRefs.current[r][c] = el }}
+                    tabIndex={isInitial || solved ? -1 : 0}
+                    role="gridcell"
+                    onFocus={() => setSelected([r, c])}
+                    className={[
+                      'sudoku-cell',
+                      `row-${r + 1}`,
+                      isInitial ? 'prefilled' : '',
+                      isSelected ? 'selected' : '',
+                      !isSelected && (isSameBox || isSameRow || isSameCol) ? 'highlighted' : '',
+                      isUserFilled ? 'user-filled' : '',
+                      isError ? 'error' : '',
+                    ].filter(Boolean).join(' ')}
+                  >
+                    {cell !== 0 ? cell : pencilMode ? (
+                      <span style={{ fontSize: 8, lineHeight: 1.2 }}>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9]
+                          .filter(n => candidates.get(`${r}-${c}`)?.has(n))
+                          .join('')}
+                      </span>
+                    ) : null}
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {!solved && (
+            <>
+              <div className="game-controls">
+                <button type="button" className="ctrl-btn" onClick={reset}><span>Reset</span></button>
+                <button
+                  type="button"
+                  className="ctrl-btn"
+                  onClick={() => selected && handleInput(selected[0], selected[1], '0')}
+                >
+                  <span>Erase</span>
+                </button>
+                <button type="button" className="ctrl-btn" onClick={() => setPencilMode(!pencilMode)}>
+                  <span>{pencilMode ? 'Notes ON' : 'Notes'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="ctrl-btn"
+                  onClick={() => {
+                    const newErrors = new Set<string>()
+                    grid.forEach((row, r) =>
+                      row.forEach((cell, c) => {
+                        if (cell !== 0 && cell !== solution[r][c]) newErrors.add(`${r}-${c}`)
+                      })
+                    )
+                    setErrors(newErrors)
+                  }}
+                >
+                  <span>Check</span>
+                </button>
+              </div>
+
+              <div className="numpad">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                  <button
+                    key={num}
+                    type="button"
+                    className="num-btn"
+                    onClick={() => selected && handleInput(selected[0], selected[1], num.toString())}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="sidebar-col">
+          <div className="sidebar-card">
+            <div className="sidebar-card-title">Input Mode</div>
+            <div className="mode-toggle">
+              <button type="button" className={`mode-btn${!pencilMode ? ' active' : ''}`} onClick={() => setPencilMode(false)}>Normal</button>
+              <button type="button" className={`mode-btn${pencilMode ? ' active' : ''}`} onClick={() => setPencilMode(true)}>Candidate</button>
+            </div>
+          </div>
+          <div className="sidebar-card">
+            <div className="sidebar-card-title">Progress</div>
+            <div className="progress-row">
+              <span className="progress-label">Filled</span>
+              <span className="progress-count">{filledCount} / 81</span>
+            </div>
+            <div className="progress-bar-track">
+              <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <div className="mistake-row">
+                <span className="mistake-label">Mistakes</span>
+                <div className="mistake-dots">
+                  {[0, 1, 2].map(i => (
+                    <div key={i} className={`mistake-dot${i < mistakeCount ? ' filled' : ''}`} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="ad-slot">
+            <span className="ad-label">Advertisement</span>
+            <span className="ad-size">300 × 250</span>
+          </div>
         </div>
       </div>
-
-      {/* Controls */}
-      {!solved && (
-        <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
-          {/* Virtual Number Pad for Mobile */}
-          <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap justify-center sm:gap-2 w-full max-w-full sm:max-w-sm">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-              <button
-                key={num}
-                onClick={() => {
-                  if (selected) {
-                    handleInput(selected[0], selected[1], num.toString())
-                  }
-                }}
-                className="aspect-square flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-lg font-bold text-black/70 transition hover:bg-black hover:text-white active:scale-90 shadow-sm"
-              >
-                {num}
-              </button>
-            ))}
-            <button
-              onClick={() => {
-                if (selected) {
-                  handleInput(selected[0], selected[1], '0')
-                }
-              }}
-              className="aspect-square flex items-center justify-center rounded-xl bg-white border-2 border-black/10 text-xs font-bold text-black/40 transition hover:bg-red-500 hover:text-white active:scale-90 shadow-sm"
-            >
-              DEL
-            </button>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              onClick={() => setPencilMode(!pencilMode)}
-              className={`rounded-full border px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold transition shadow-sm ${
-                pencilMode 
-                  ? 'bg-indigo-500 border-indigo-600 text-white shadow-inner' 
-                  : 'bg-white/80 border-black/10 text-black/60 hover:bg-black/5'
-              }`}
-            >
-              {pencilMode ? '✏️ Pencil ON' : '✏️ Pencil OFF'}
-            </button>
-            <button
-              onClick={reset}
-              className="rounded-full border border-black/10 bg-white/80 px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
-            >
-              🔄 Reset
-            </button>
-            <button
-              onClick={() => {
-                const newErrors = new Set<string>()
-                grid.forEach((row, r) =>
-                  row.forEach((cell, c) => {
-                    if (cell !== 0 && cell !== solution[r][c]) newErrors.add(`${r}-${c}`)
-                  })
-                )
-                setErrors(newErrors)
-              }}
-              className="rounded-full border border-black/10 bg-white/80 px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold text-black/60 transition hover:bg-black/5 shadow-sm"
-            >
-              ✓ Check
-            </button>
-          </div>
-        </div>
-      )}
-
-      <p className="text-[10px] text-black/30 font-medium uppercase tracking-wider">Tap a cell then a number to fill</p>
-    </div>
+    </>
   )
 }

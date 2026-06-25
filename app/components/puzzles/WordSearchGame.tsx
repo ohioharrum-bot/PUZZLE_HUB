@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Puzzle, WordSearchPuzzleData } from '@/types/puzzle'
 import { saveProgressLocally } from '@/lib/utils'
 import { createClient } from '@/lib/supabase'
+import { GameNav } from '@/components/layout/Header'
 
 const TIME_LIMIT_SECONDS = 600
 
@@ -166,35 +167,24 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
   const rows = grid.length
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-3">
-          <span className="font-mono font-semibold text-black/70 bg-white/60 px-3 py-1 rounded-full border border-black/5 shadow-sm">{fmt(seconds)}</span>
-          <span className="capitalize px-3 py-1 rounded-full border border-black/10 bg-white/60 text-xs font-medium text-black/50">{puzzle.difficulty}</span>
-        </div>
-        {solved && (
-          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-            ✓ Solved!
-          </span>
-        )}
-        {failed && (
-          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
-            {failReason === 'giveup' ? 'Given up' : "Time's up"}
-          </span>
-        )}
-      </div>
-
-      {!gameOver && (
-        <div className="flex items-center justify-between text-xs text-black/45">
-          <span>{fmt(timeRemaining)} remaining</span>
-          <button onClick={() => endGameAsFailed('giveup')} className="text-red-500 hover:underline font-medium">
-            Give up
-          </button>
-        </div>
-      )}
-
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 w-full lg:items-center">
-        <div className="w-full lg:flex-1 min-w-0 flex justify-center items-center">
+    <>
+      <GameNav
+        title={puzzle.title}
+        meta={`Word Search · ${words.length} words`}
+        difficulty={puzzle.difficulty}
+        timer={fmt(seconds)}
+        backHref="/puzzles/wordsearch"
+      />
+      <div className="game-wrapper game-wrapper-wordsearch">
+        <div className="board-col">
+          {!gameOver && (
+            <div className="flex items-center justify-between text-xs text-gray-600 mb-2 px-1 w-full">
+              <span>{fmt(timeRemaining)} remaining</span>
+              <button type="button" onClick={() => endGameAsFailed('giveup')} className="text-red-500 hover:underline font-semibold">
+                Give up
+              </button>
+            </div>
+          )}
           <div
             className="select-none touch-none border-2 border-black/10 rounded-2xl overflow-hidden shadow-md bg-white
               aspect-square w-full max-w-[min(100%,560px)] mx-auto
@@ -253,49 +243,56 @@ export default function WordSearchGame({ puzzle }: { puzzle: Puzzle }) {
               })
             )}
           </div>
+          <p className="text-xs text-gray-400 text-center lg:text-left w-full mt-4">Drag over letters to select a word</p>
         </div>
 
-        <div className="bg-white/80 border border-black/10 rounded-[28px] p-6 w-full lg:w-80 lg:shrink-0 shadow-sm backdrop-blur-md lg:self-center">
-          <h3 className="font-bold text-black mb-4 flex items-center justify-between">
-            <span className="text-lg tracking-tight">Word List</span>
-            <span className="text-xs font-medium bg-black/5 px-2 py-1 rounded-full text-black/40">{found.length}/{words.length}</span>
-          </h3>
-          <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-            {words.map((word: string) => (
-              <div 
-                key={word} 
-                className={`text-xs sm:text-sm font-mono p-2.5 rounded-xl border-2 transition-all flex items-center justify-center lg:justify-start ${
-                  found.includes(word) 
-                  ? 'bg-green-50 border-green-200 text-green-700 line-through opacity-50' 
-                  : failed
-                  ? 'bg-orange-50 border-orange-300 text-orange-800 font-semibold'
-                  : 'bg-white border-black/5 text-black/70 shadow-sm'
-                }`}
-              >
-                {word}
+        <div className="sidebar-col">
+          <div className="sidebar-card">
+            <h3 className="font-bold text-black mb-4 flex items-center justify-between">
+              <span className="text-lg tracking-tight">Word List</span>
+              <span className="text-xs font-medium bg-black/5 px-2 py-1 rounded-full text-black/40">{found.length}/{words.length}</span>
+            </h3>
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+              {words.map((word: string) => (
+                <div 
+                  key={word} 
+                  className={`text-xs sm:text-sm font-mono p-2.5 rounded-xl border-2 transition-all flex items-center justify-center lg:justify-start ${
+                    found.includes(word) 
+                    ? 'bg-green-50 border-green-200 text-green-700 line-through opacity-50' 
+                    : failed
+                    ? 'bg-orange-50 border-orange-300 text-orange-800 font-semibold'
+                    : 'bg-white border-black/5 text-black/70 shadow-sm'
+                  }`}
+                >
+                  {word}
+                </div>
+              ))}
+            </div>
+            {solved && (
+              <div className="mt-6 p-4 bg-green-500 text-white rounded-[20px] text-center font-bold text-sm shadow-lg shadow-green-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                🎉 Puzzle Complete!
+                <div className="text-xs font-normal opacity-90 mt-1">Found all {words.length} words in {fmt(seconds)}</div>
               </div>
-            ))}
+            )}
+            {failed && (
+              <div className="mt-6 p-4 bg-orange-50 border-2 border-orange-200 text-orange-900 rounded-[20px] text-center text-sm">
+                <p className="font-bold mb-1">{failReason === 'giveup' ? 'You gave up' : 'Out of time!'}</p>
+                <p className="text-xs opacity-80 mb-2">Unfound words are highlighted in orange on the grid.</p>
+                {missingWords.length > 0 && (
+                  <p className="text-xs font-medium">
+                    Missing: {missingWords.join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
-          {solved && (
-            <div className="mt-6 p-4 bg-green-500 text-white rounded-[20px] text-center font-bold text-sm shadow-lg shadow-green-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              🎉 Puzzle Complete!
-              <div className="text-xs font-normal opacity-90 mt-1">Found all {words.length} words in {fmt(seconds)}</div>
-            </div>
-          )}
-          {failed && (
-            <div className="mt-6 p-4 bg-orange-50 border-2 border-orange-200 text-orange-900 rounded-[20px] text-center text-sm">
-              <p className="font-bold mb-1">{failReason === 'giveup' ? 'You gave up' : 'Out of time!'}</p>
-              <p className="text-xs opacity-80 mb-2">Unfound words are highlighted in orange on the grid.</p>
-              {missingWords.length > 0 && (
-                <p className="text-xs font-medium">
-                  Missing: {missingWords.join(', ')}
-                </p>
-              )}
-            </div>
-          )}
+
+          <div className="ad-slot">
+            <div className="ad-label">Advertisement</div>
+            <span className="ad-size">300 × 250</span>
+          </div>
         </div>
       </div>
-      <p className="text-xs text-black/30 text-center lg:text-left">Drag over letters to select a word</p>
-    </div>
+    </>
   )
 }

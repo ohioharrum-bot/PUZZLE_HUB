@@ -93,63 +93,96 @@ export default function GuestProgress() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-5">
-        <section className="motion-item rounded-[24px] border border-[#e2e2e2] bg-[#ffffff] p-6 shadow-sm shadow-black/5 animate-pulse">
-          <div className="flex items-center justify-between mb-1">
-            <div className="h-3 w-24 bg-[#f0f0f0] rounded" />
-            <div className="h-4 w-28 bg-[#f0f0f0] rounded-full" />
-          </div>
-          <div className="h-8 w-40 bg-[#f0f0f0] rounded mt-1" />
-          <div className="h-3 w-56 bg-[#f0f0f0] rounded mt-2" />
-
-          <div className="mt-5 grid grid-cols-3 gap-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="rounded-2xl border border-[#eeeeee] bg-[#fafafa] px-4 py-4">
-                <div className="h-8 w-16 bg-[#f0f0f0] rounded" />
-                <div className="h-3 w-20 bg-[#f0f0f0] rounded mt-2" />
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-6 rounded-2xl bg-[#f5f5f5] p-4 border border-[#eeeeee]">
-            <div className="h-3 w-full bg-[#f0f0f0] rounded" />
-            <div className="h-3 w-2/3 bg-[#f0f0f0] rounded mt-2" />
-          </div>
-        </section>
-      </div>
+      <main className="main">
+        <div className="section-header">
+          <span className="section-title">Account</span>
+        </div>
+        <div style={{
+          background: 'var(--white)',
+          padding: '32px',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--gray-200)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          animation: 'pulse 1.5s infinite'
+        }}>
+          <div style={{ height: '24px', width: '200px', background: 'var(--gray-100)', borderRadius: '4px' }} />
+          <div style={{ height: '40px', width: '300px', background: 'var(--gray-100)', borderRadius: '4px' }} />
+          <div style={{ height: '80px', background: 'var(--gray-100)', borderRadius: '8px' }} />
+        </div>
+      </main>
     )
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <section className="motion-item rounded-[24px] border border-[#e2e2e2] bg-[#ffffff] p-6 shadow-sm shadow-black/5">
-        <div className="flex items-center justify-between mb-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#888888]">Guest Profile</p>
-          <span className="rounded-full bg-[#f0f0f0] px-2 py-0.5 text-[9px] font-medium text-[#666666]">Local Storage Only</span>
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-[#111111]">Guest Player</h1>
-        <p className="mt-1 text-xs text-[#666666]">Your progress is saved locally on this browser.</p>
+    <main className="main">
+      <div className="section-header">
+        <span className="section-title">Account</span>
+      </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          {[
-            { label: 'Puzzles Solved', value: String(stats.totalSolved) },
-            { label: 'Best Time', value: stats.bestTime ? formatTime(stats.bestTime) : '—' },
-            { label: 'Streak', value: stats.streak },
-          ].map(m => (
-            <div key={m.label} className="rounded-2xl border border-[#eeeeee] bg-[#fafafa] px-4 py-4">
-              <p className="text-2xl font-semibold tracking-tight text-[#111111]">{m.value}</p>
-              <p className="mt-0.5 text-xs text-[#888888]">{m.label}</p>
+      {/* Guest Summary Card */}
+      <div className="featured-row" style={{ marginBottom: 40 }}>
+        <div className="featured-card dark" style={{ cursor: 'default' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '8px' }}>
+              <div className="featured-label" style={{ margin: 0 }}>Guest Profile</div>
+              <span style={{
+                background: 'rgba(255,255,255,0.15)',
+                color: 'var(--white)',
+                padding: '2px 8px',
+                borderRadius: '100px',
+                fontSize: '9px',
+                fontWeight: '700',
+                textTransform: 'uppercase'
+              }}>
+                Local Storage Only
+              </span>
             </div>
-          ))}
+            <div className="featured-title">Guest Player</div>
+          </div>
+          <div>
+            <div className="featured-meta">Your progress is saved locally on this browser.</div>
+          </div>
         </div>
-        
-        <div className="mt-6 rounded-2xl bg-[#f5f5f5] p-4 border border-[#eeeeee]">
-          <p className="text-xs leading-relaxed text-[#666666]">
-            <strong>Note:</strong> Guest progress isn&apos;t synced across devices. 
-            <a href="/auth/login" className="ml-1 font-semibold text-[#111111] hover:underline">Sign in</a> to sync your scores and join the global leaderboards.
-          </p>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="stats-bar" style={{ marginBottom: 40 }}>
+        <div className="stat-item">
+          <div className="stat-number">{stats.totalSolved}</div>
+          <div className="stat-label">Puzzles Solved</div>
         </div>
-      </section>
-    </div>
+        <div className="stat-item">
+          <div className="stat-number">{stats.bestTime ? formatTime(stats.bestTime) : '—'}</div>
+          <div className="stat-label">Best Time</div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-number">{stats.streak}</div>
+          <div className="stat-label">Current Streak</div>
+        </div>
+      </div>
+      
+      {/* Sync Callout */}
+      <div style={{
+        background: 'var(--white)',
+        border: '1px solid var(--gray-200)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '32px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: '24px'
+      }}>
+        <p style={{ fontSize: '15px', color: 'var(--gray-600)', lineHeight: '1.6', margin: 0 }}>
+          Guest progress is stored in your current browser and isn&apos;t synced across other devices. 
+          Create a free account to back up your progress, track your stats permanently, and join the global leaderboards.
+        </p>
+        <a href="/auth/login" className="btn-primary" style={{ textDecoration: 'none' }}>
+          Sign Up / Log In
+        </a>
+      </div>
+    </main>
   )
 }

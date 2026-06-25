@@ -1,6 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { formatTime } from '@/lib/utils'
-import PageMotion from '@/components/PageMotion'
 import { Score } from '@/types/puzzle'
 import GuestProgress from '@/components/GuestProgress'
 
@@ -17,11 +16,7 @@ export default async function ProfilePage() {
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session) {
-    return (
-      <PageMotion>
-        <GuestProgress />
-      </PageMotion>
-    )
+    return <GuestProgress />
   }
 
   const { data: profile } = await supabase
@@ -47,68 +42,107 @@ export default async function ProfilePage() {
   const byType = (type: string) => scores.filter((s) => s.puzzles?.type === type).length
 
   return (
-    <PageMotion>
-      <div className="mx-auto max-w-3xl space-y-5">
-        {/* Profile card */}
-        <section className="motion-item rounded-[30px] border border-black/10 bg-white/65 p-6 shadow-sm backdrop-blur">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35">Your Profile</p>
-          <h1 className="text-2xl font-semibold tracking-tight">{profile?.username ?? session.user.email}</h1>
-          <p className="mt-1 text-xs text-black/45">Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : '—'}</p>
-
-          <div className="mt-5 grid grid-cols-3 gap-3">
-            {[
-              { label: 'Puzzles Solved', value: String(totalSolved) },
-              { label: 'Best Time', value: bestTime ? formatTime(bestTime) : '—' },
-              { label: 'Streak', value: getStreak(scores) },
-            ].map(m => (
-              <div key={m.label} className="rounded-2xl border border-black/8 bg-white/60 px-4 py-4">
-                <p className="text-2xl font-semibold tracking-tight">{m.value}</p>
-                <p className="mt-0.5 text-xs text-black/40">{m.label}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Puzzle type breakdown */}
-        <section className="motion-item rounded-[30px] border border-black/10 bg-white/65 p-6 shadow-sm backdrop-blur">
-          <h2 className="mb-4 text-sm font-semibold text-black/70">Solved by type</h2>
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { label: 'Sudoku', count: byType('sudoku') },
-              { label: 'Word Search', count: byType('wordsearch') },
-              { label: 'Logic', count: byType('logic') },
-              { label: 'Jigsaw', count: byType('jigsaw') },
-            ].map(t => (
-              <div key={t.label} className="rounded-2xl border border-black/15 bg-white px-3 py-5 text-center text-black shadow-sm">
-                <p className="text-2xl font-bold">{t.count}</p>
-                <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-black/50">{t.label}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Recent solves */}
-        {!!scores.length && (
-          <section className="motion-item rounded-[30px] border border-black/10 bg-white/65 p-6 shadow-sm backdrop-blur">
-            <h2 className="mb-4 text-sm font-semibold text-black/70">Recent solves</h2>
-            <div className="space-y-2">
-              {scores.slice(0, 15).map((s) => (
-                <div key={s.id} className="flex items-center justify-between rounded-xl border border-black/6 bg-white/50 px-4 py-3 text-sm">
-                  <div>
-                    <p className="font-medium">{s.puzzles?.title ?? 'Puzzle'}</p>
-                    <p className="text-xs text-black/40 capitalize">{s.puzzles?.type} · {s.puzzles?.difficulty}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-sm font-semibold">{formatTime(s.time_seconds)}</p>
-                    <p className="text-xs text-black/35">{new Date(s.created_at).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+    <main className="main">
+      <div className="section-header">
+        <span className="section-title">Account</span>
       </div>
-    </PageMotion>
+
+      {/* Profile summary card */}
+      <div className="featured-row" style={{ marginBottom: 40 }}>
+        <div className="featured-card dark" style={{ cursor: 'default' }}>
+          <div>
+            <div className="featured-label">Your Profile</div>
+            <div className="featured-title">{profile?.username ?? session.user.email}</div>
+          </div>
+          <div>
+            <div className="featured-meta">
+              Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="stats-bar" style={{ marginBottom: 40 }}>
+        <div className="stat-item">
+          <div className="stat-number">{totalSolved}</div>
+          <div className="stat-label">Puzzles Solved</div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-number">{bestTime ? formatTime(bestTime) : '—'}</div>
+          <div className="stat-label">Best Time</div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-number">{getStreak(scores)}</div>
+          <div className="stat-label">Current Streak</div>
+        </div>
+      </div>
+
+      {/* Solved by Category */}
+      <div className="section-header">
+        <span className="section-title">Solved by Category</span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4" style={{ marginBottom: 40 }}>
+        {[
+          { label: 'Sudoku', count: byType('sudoku') },
+          { label: 'Word Search', count: byType('wordsearch') },
+          { label: 'Logic Puzzles', count: byType('logic') },
+          { label: 'Jigsaw', count: byType('jigsaw') },
+        ].map(t => (
+          <div key={t.label} style={{
+            background: 'var(--white)',
+            border: '1px solid var(--gray-200)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '24px',
+            textAlign: 'center'
+          }}>
+            <p style={{ fontSize: '32px', fontWeight: '800', color: 'var(--black)', margin: '0 0 4px 0' }}>{t.count}</p>
+            <p style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--gray-600)', margin: 0, letterSpacing: '0.5px' }}>{t.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent solves */}
+      {!!scores.length && (
+        <>
+          <div className="section-header">
+            <span className="section-title">Recent Solves</span>
+          </div>
+          <div style={{
+            background: 'var(--white)',
+            border: '1px solid var(--gray-200)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            {scores.slice(0, 15).map((s) => (
+              <div key={s.id} style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--gray-100)',
+                fontSize: '14px'
+              }}>
+                <div>
+                  <p style={{ fontWeight: '750', color: 'var(--black)', margin: '0 0 4px 0' }}>{s.puzzles?.title ?? 'Puzzle'}</p>
+                  <p style={{ fontSize: '11px', color: 'var(--gray-600)', textTransform: 'capitalize', margin: 0 }}>
+                    {s.puzzles?.type === 'wordle' ? 'Word Guesser' : s.puzzles?.type} · {s.puzzles?.difficulty}
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontWeight: '700', color: 'var(--black)', margin: '0 0 4px 0' }}>{formatTime(s.time_seconds)}</p>
+                  <p style={{ fontSize: '11px', color: 'var(--gray-400)', margin: 0 }}>{new Date(s.created_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </main>
   )
 }
 

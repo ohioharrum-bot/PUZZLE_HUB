@@ -1,14 +1,12 @@
 import type { Metadata } from 'next'
-import { Poppins, Roboto_Mono } from 'next/font/google'
-import Link from 'next/link'
+import { Manrope, Roboto_Mono } from 'next/font/google'
 import './globals.css'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
+import { AppShell } from '@/components/layout/Header'
 
-const poppins = Poppins({
+const manrope = Manrope({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-poppins',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
   display: 'swap',
 })
 
@@ -24,8 +22,6 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -36,14 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${poppins.variable} ${robotoMono.variable} min-h-screen w-full max-w-full overflow-x-hidden bg-[#eef0f2] font-sans text-[#111318]`}
+        className={`${manrope.variable} ${robotoMono.variable} min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--off-white)] font-sans text-[var(--black)]`}
         suppressHydrationWarning
       >
-        <Header />
-        <main className="site-container">
-          {children}
-        </main>
-        <Footer />
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   )
