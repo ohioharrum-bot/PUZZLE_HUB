@@ -118,6 +118,12 @@ export function ReferencePuzzleCard({ puzzle }: { puzzle: Puzzle }) {
 
 export function HomePuzzleExplorer({ puzzles, daily, today }: { puzzles: Puzzle[]; daily: Puzzle[]; today: string }) {
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>('all')
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setIsLoggedIn(!!session))
+  }, [supabase])
 
   const filtered = category === 'all'
     ? puzzles.filter(p => !p.is_daily)
@@ -132,8 +138,13 @@ export function HomePuzzleExplorer({ puzzles, daily, today }: { puzzles: Puzzle[
         <div className="daily-strip-puzzles">
           {daily.slice(0, 3).map(p => {
             const displayType = p.type === 'wordle' ? 'word-guesser' : p.type
+            const isGated = (p.difficulty === 'medium' || p.difficulty === 'hard') && isLoggedIn === false
+            const href = isGated
+              ? '/auth/login?message=Create a free account to play Medium and Hard puzzles'
+              : `/puzzles/${displayType}/${p.id}`
+
             return (
-              <Link key={p.id} href={`/puzzles/${displayType}/${p.id}`} className="daily-chip">
+              <Link key={p.id} href={href} className="daily-chip">
                 <div className="daily-chip-icon">
                   <PuzzleIcon type={p.type} />
                 </div>
@@ -141,6 +152,13 @@ export function HomePuzzleExplorer({ puzzles, daily, today }: { puzzles: Puzzle[
                   <span className="daily-chip-name">{p.title.replace(/ - .+$/, '')}</span>
                   <span className="daily-chip-meta">{p.difficulty} · {formatDate(p.daily_date || today)}</span>
                 </div>
+                {isGated && (
+                  <div className="daily-chip-lock" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#a3a3a3" strokeWidth="2.5">
+                      <path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                  </div>
+                )}
               </Link>
             )
           })}
