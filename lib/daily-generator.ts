@@ -1,36 +1,37 @@
 import { v4 as uuidv4 } from 'uuid'
-import { generateSudoku, generateWordSearch, generateLogicPuzzle, LOGIC_PUZZLE_POOLS, getLogicPuzzleBankIndex, WORD_BANKS } from './puzzle-generators'
+import {
+  generateSudoku,
+  generateWordSearch,
+  generateLogicPuzzle,
+  LOGIC_PUZZLE_POOLS,
+  WORD_BANKS,
+  JIGSAW_IMAGES,
+  generateJigsaw
+} from './puzzle-generators'
 import { generateAILogicPuzzle, generateAIWordSearchTheme, generateAIWordGuesser } from './ai-generator'
 import { createAdminClient } from './supabase-admin'
-import { getTodayDateEastern, getYesterdayDateEastern } from './daily-seed'
+import { getTodayDateEastern, pickDailyIndex } from './daily-seed'
 import type { PuzzleType } from '@/types/puzzle'
 
-const JIGSAW_IMAGES = [
-  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80"
+const WORDLE_FALLBACK_WORDS = [
+  "CLOCK", "PLANT", "LIGHT", "WATER", "HOUSE", "PLANE", "SHARK", "TRAIN", "SMILE", "STONE",
+  "FLAME", "SWEET", "DREAM", "HEART", "CLOUD", "BREAD", "NIGHT", "GREEN", "PAPER", "SOUND",
+  "WORLD", "MUSIC", "FRUIT", "WHITE", "BLACK", "GLASS", "BOARD", "CHAIR", "STORM", "MIGHT",
+  "FLOOR", "PHONE", "SHINE", "SHIRT", "TABLE", "MOUTH", "EARTH", "LUNCH", "CHIPS", "BEACH",
+  "WHEAT", "GRAPE", "CHAMP", "SMART", "BRAVE", "PIXEL", "SPACE", "BRUSH", "FLUTE", "BRICK"
 ]
 
-async function getYesterdayPuzzleData(type: PuzzleType, today: string) {
+async function getRecentDailyPuzzleData(type: PuzzleType, today: string, count = 10): Promise<any[]> {
   const supabase = createAdminClient()
-  const yesterday = getYesterdayDateEastern(today)
   const { data } = await supabase
     .from('puzzles')
     .select('puzzle_data')
-    .eq('is_daily', true)
-    .eq('daily_date', yesterday)
     .eq('type', type)
-    .maybeSingle()
-  return data?.puzzle_data ?? null
-}
-
-function getYesterdayWordSearchAvoidBank(yesterdayData: { words?: string[] } | null, difficulty: 'easy' | 'medium' | 'hard') {
-  if (!yesterdayData?.words?.length) return undefined
-  const bankList = WORD_BANKS[difficulty]
-  const idx = bankList.findIndex(bank => yesterdayData.words!.some(w => bank.includes(w)))
-  return idx >= 0 ? idx : undefined
+    .eq('is_daily', true)
+    .lt('daily_date', today)
+    .order('daily_date', { ascending: false })
+    .limit(count)
+  return data ? data.map(p => p.puzzle_data) : []
 }
 
 function formatDateFriendly(dateString: string): string {
@@ -66,8 +67,23 @@ async function buildDailyPuzzleData(type: PuzzleType, today: string) {
     puzzleData = puzzle
     solutionData = { solution }
   } else if (type === 'wordsearch') {
-    const yesterdayData = await getYesterdayPuzzleData('wordsearch', today)
-    const avoidBankIndex = getYesterdayWordSearchAvoidBank(yesterdayData, difficulty)
+    const recentData = await getRecentDailyPuzzleData('wordsearch', today, 10)
+    const avoidWordsList = recentData.map(d => d.words ?? [])
+    const banks = WORD_BANKS[difficulty]
+    
+    // Find a bank that doesn't share words with recently used word searches
+    let chosenBankIndex = -1
+    for (let i = 0; i < banks.length; i++) {
+      const bank = banks[i]
+      const overlaps = avoidWordsList.some(words => words.some((w: string) => bank.includes(w)))
+      if (!overlaps) {
+        chosenBankIndex = i
+        break
+      }
+    }
+    if (chosenBankIndex === -1) {
+      chosenBankIndex = Math.floor(Math.random() * banks.length)
+    }
 
     if (process.env.GROQ_API_KEY) {
       try {
@@ -78,17 +94,24 @@ async function buildDailyPuzzleData(type: PuzzleType, today: string) {
         console.log('✅ AI WordSearch generated')
       } catch (e) {
         console.error('❌ AI WordSearch failed, falling back:', e)
-        puzzleData = generateWordSearch(difficulty, undefined, today, avoidBankIndex)
+        puzzleData = generateWordSearch(difficulty, undefined, today, chosenBankIndex)
         title = `Daily Word Search - ${dateFriendly}`
       }
     } else {
       console.warn('⚠️ GROQ_API_KEY missing, using seeded WordSearch bank')
-      puzzleData = generateWordSearch(difficulty, undefined, today, avoidBankIndex)
+      puzzleData = generateWordSearch(difficulty, undefined, today, chosenBankIndex)
       title = `Daily Word Search - ${dateFriendly}`
     }
   } else if (type === 'logic') {
-    const yesterdayData = await getYesterdayPuzzleData('logic', today)
-    const avoidQuestion = yesterdayData?.question
+    const recentData = await getRecentDailyPuzzleData('logic', today, 10)
+    const recentQuestions = recentData.map(d => d.question)
+    const pool = LOGIC_PUZZLE_POOLS[difficulty]
+    
+    // Find a question not recently used
+    const available = pool.filter(p => !recentQuestions.includes(p.question))
+    const selectedQuestion = available.length > 0 
+      ? available[Math.floor(Math.random() * available.length)] 
+      : pool[Math.floor(Math.random() * pool.length)]
 
     if (process.env.GROQ_API_KEY) {
       try {
@@ -98,12 +121,11 @@ async function buildDailyPuzzleData(type: PuzzleType, today: string) {
         console.log('✅ AI Logic Puzzle generated')
       } catch (e) {
         console.error('❌ AI Logic failed, falling back:', e)
-        puzzleData = generateLogicPuzzle(difficulty, today, avoidQuestion)
+        puzzleData = selectedQuestion
         title = `Daily Riddle - ${dateFriendly}`
       }
     } else {
-      console.warn('⚠️ GROQ_API_KEY missing, using seeded Logic bank')
-      puzzleData = generateLogicPuzzle(difficulty, today, avoidQuestion)
+      puzzleData = selectedQuestion
       title = `Daily Riddle - ${dateFriendly}`
     }
   } else if (type === 'wordle') {
@@ -117,17 +139,28 @@ async function buildDailyPuzzleData(type: PuzzleType, today: string) {
         console.log('✅ AI Word Guesser generated')
       } catch (e) {
         console.error('❌ AI Word Guesser failed, falling back:', e)
-        puzzleData = { solution: 'PUZZLE' }
+        const wordIndex = pickDailyIndex(WORDLE_FALLBACK_WORDS.length, today)
+        const fallbackWord = WORDLE_FALLBACK_WORDS[wordIndex]
+        puzzleData = { solution: fallbackWord }
         title = `Daily Word Guesser - ${dateFriendly}`
       }
     } else {
-      puzzleData = { solution: 'PUZZLE' }
+      const wordIndex = pickDailyIndex(WORDLE_FALLBACK_WORDS.length, today)
+      const fallbackWord = WORDLE_FALLBACK_WORDS[wordIndex]
+      puzzleData = { solution: fallbackWord }
       title = `Daily Word Guesser - ${dateFriendly}`
     }
   } else if (type === 'jigsaw') {
-    const imageIndex = getLogicPuzzleBankIndex('easy', today) % JIGSAW_IMAGES.length
-    const imageUrl = JIGSAW_IMAGES[imageIndex]
-    puzzleData = { image_url: imageUrl, pieces: 24 }
+    const recentData = await getRecentDailyPuzzleData('jigsaw', today, 10)
+    const recentUrls = recentData.map(d => d.image_url)
+    const available = JIGSAW_IMAGES.filter(url => !recentUrls.includes(url))
+    const chosenUrl = available.length > 0
+      ? available[Math.floor(Math.random() * available.length)]
+      : JIGSAW_IMAGES[Math.floor(Math.random() * JIGSAW_IMAGES.length)]
+    
+    const imageIndex = JIGSAW_IMAGES.indexOf(chosenUrl)
+    const pieces = [16, 24, 48][imageIndex % 3]
+    puzzleData = { image_url: chosenUrl, pieces }
     title = `Daily Jigsaw - ${dateFriendly}`
   }
 
