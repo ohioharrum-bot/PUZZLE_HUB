@@ -44,6 +44,7 @@ export interface Puzzle {
   play_count: number
   created_at: string
   completed?: boolean
+  content?: PuzzleData
 }
 
 export interface Score {

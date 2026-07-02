@@ -527,6 +527,7 @@ async function seed() {
       difficulty: diff,
       puzzle_data: data,
       solution_data: { solution: data.solution },
+      content: data,
       is_daily: i === 0,
       play_count: 0
     });
@@ -540,56 +541,64 @@ async function seed() {
       type: 'wordsearch',
       difficulty: theme.difficulty,
       puzzle_data: data,
+      content: data,
       is_daily: false,
       play_count: 0
     });
   });
 
   LOGIC_PUZZLES.forEach(p => {
+    const data = {
+      question: p.question,
+      answer: p.answer,
+      hint: p.hint,
+      options: p.options
+    };
     newPuzzles.push({
       id: uuidv4(),
       title: p.title,
       type: 'logic',
       difficulty: p.difficulty,
-      puzzle_data: {
-        question: p.question,
-        answer: p.answer,
-        hint: p.hint,
-        options: p.options
-      },
+      puzzle_data: data,
+      content: data,
       is_daily: false,
       play_count: 0
     });
   });
 
   JIGSAW_SAMPLES.forEach((j, i) => {
+    const data = {
+      image_url: j.url,
+      pieces: j.pieces
+    };
     newPuzzles.push({
       id: uuidv4(),
       title: j.title,
       type: 'jigsaw',
       difficulty: i % 3 === 0 ? 'easy' : i % 3 === 1 ? 'medium' : 'hard',
-      puzzle_data: {
-        image_url: j.url,
-        pieces: j.pieces
-      },
+      puzzle_data: data,
+      content: data,
       is_daily: false,
       play_count: 0
     });
   });
 
   WORDLE_SAMPLES.forEach(w => {
+    const data = {
+      solution: w.solution
+    };
     newPuzzles.push({
       id: uuidv4(),
       title: w.title,
       type: 'wordle',
       difficulty: w.difficulty,
-      puzzle_data: {
-        solution: w.solution
-      },
+      puzzle_data: data,
+      content: data,
       is_daily: false,
       play_count: 0
     });
   });
+
 
   console.log(`📦 Generated ${newPuzzles.length} puzzles. Refreshing Supabase table...`);
 

@@ -189,6 +189,7 @@ export async function ensureDailyPuzzleForType(type: PuzzleType, today = getToda
     difficulty: 'medium',
     puzzle_data: puzzleData,
     solution_data: solutionData,
+    content: puzzleData,
     is_daily: true,
     daily_date: today,
     play_count: 0

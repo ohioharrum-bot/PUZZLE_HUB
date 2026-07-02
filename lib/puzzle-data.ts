@@ -107,45 +107,10 @@ export async function getPuzzleById(id: string, type?: PuzzleType): Promise<Puzz
 
   const puzzle = data as Puzzle
 
-  // If it's a regular (non-daily) puzzle, randomize/generate fresh content for it!
-  if (!puzzle.is_daily) {
-    if (puzzle.type === 'jigsaw') {
-      const difficulty = puzzle.difficulty
-      const { generateJigsaw } = await import('./puzzle-generators')
-      const jigsawData = generateJigsaw(difficulty)
-      puzzle.puzzle_data = {
-        image_url: jigsawData.image_url,
-        pieces: jigsawData.pieces
-      }
-      puzzle.title = jigsawData.title
-    } else if (puzzle.type === 'logic') {
-      const difficulty = puzzle.difficulty
-      const { LOGIC_PUZZLE_POOLS } = await import('./puzzle-generators')
-      const pool = LOGIC_PUZZLE_POOLS[difficulty]
-      const selected = pool[Math.floor(Math.random() * pool.length)]
-      puzzle.puzzle_data = {
-        question: selected.question,
-        answer: selected.answer,
-        hint: selected.hint,
-        options: selected.options
-      }
-      puzzle.title = selected.title
-    } else if (puzzle.type === 'wordsearch') {
-      const difficulty = puzzle.difficulty
-      const { WORD_BANKS, WORD_SEARCH_THEMES_INFO, generateWordSearch } = await import('./puzzle-generators')
-      const banks = WORD_BANKS[difficulty]
-      const chosenBankIndex = Math.floor(Math.random() * banks.length)
-      const selectedBank = banks[chosenBankIndex]
-      const count = difficulty === 'easy' ? 6 : difficulty === 'medium' ? 7 : 8
-      
-      const shuffledBank = [...selectedBank].sort(() => Math.random() - 0.5)
-      const words = shuffledBank.slice(0, count)
-      
-      const wsData = generateWordSearch(difficulty, words)
-      puzzle.puzzle_data = wsData
-      puzzle.title = WORD_SEARCH_THEMES_INFO[difficulty][chosenBankIndex] || puzzle.title
-    }
+  if (puzzle.content) {
+    puzzle.puzzle_data = puzzle.content
   }
+
 
   return attachCompletionStatus(puzzle)
 }

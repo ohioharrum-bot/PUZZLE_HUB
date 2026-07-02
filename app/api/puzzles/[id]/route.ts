@@ -32,7 +32,7 @@ export async function GET(_: Request, { params }: { params: Promise<unknown> }) 
 
   const { data, error } = await supabase
     .from('puzzles')
-    .select('*')
+    .select('content')
     .eq('id', id)
     .maybeSingle()
 
@@ -40,6 +40,6 @@ export async function GET(_: Request, { params }: { params: Promise<unknown> }) 
     return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 })
   }
 
-  await supabase.rpc('increment_play_count', { puzzle_id: data.id })
-  return NextResponse.json(data)
+  await supabase.rpc('increment_play_count', { puzzle_id: id })
+  return NextResponse.json(data.content)
 }
