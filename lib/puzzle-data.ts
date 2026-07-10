@@ -107,10 +107,5 @@ export async function getPuzzleById(id: string, type?: PuzzleType): Promise<Puzz
 
   const puzzle = data as Puzzle
 
-  if (puzzle.content) {
-    puzzle.puzzle_data = puzzle.content
-  }
-
-
   return attachCompletionStatus(puzzle)
 }

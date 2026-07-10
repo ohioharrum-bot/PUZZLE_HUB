@@ -29,6 +29,10 @@ const PUZZLE_TYPES: Record<string, { title: string; description: string }> = {
     title: 'Word Guesser',
     description: 'Guess the hidden 5-letter word in six tries.',
   },
+  'crossword': {
+    title: 'Crossword',
+    description: 'Solve crossword puzzles with clever clues.',
+  },
 }
 
 export const revalidate = 60

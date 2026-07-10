@@ -1,4 +1,4 @@
-export type PuzzleType = 'sudoku' | 'wordsearch' | 'jigsaw' | 'logic' | 'wordle'
+export type PuzzleType = 'sudoku' | 'wordsearch' | 'jigsaw' | 'logic' | 'wordle' | 'crossword'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 
 export type WordGuesserPuzzleData = {

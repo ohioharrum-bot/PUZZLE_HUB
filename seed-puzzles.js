@@ -527,7 +527,6 @@ async function seed() {
       difficulty: diff,
       puzzle_data: data,
       solution_data: { solution: data.solution },
-      content: data,
       is_daily: i === 0,
       play_count: 0
     });
@@ -541,7 +540,6 @@ async function seed() {
       type: 'wordsearch',
       difficulty: theme.difficulty,
       puzzle_data: data,
-      content: data,
       is_daily: false,
       play_count: 0
     });
@@ -560,7 +558,6 @@ async function seed() {
       type: 'logic',
       difficulty: p.difficulty,
       puzzle_data: data,
-      content: data,
       is_daily: false,
       play_count: 0
     });
@@ -577,7 +574,6 @@ async function seed() {
       type: 'jigsaw',
       difficulty: i % 3 === 0 ? 'easy' : i % 3 === 1 ? 'medium' : 'hard',
       puzzle_data: data,
-      content: data,
       is_daily: false,
       play_count: 0
     });
@@ -593,7 +589,6 @@ async function seed() {
       type: 'wordle',
       difficulty: w.difficulty,
       puzzle_data: data,
-      content: data,
       is_daily: false,
       play_count: 0
     });

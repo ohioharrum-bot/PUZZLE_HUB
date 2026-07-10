@@ -667,7 +667,6 @@ async function run() {
     difficulty: 'medium',
     puzzle_data: sudokuData,
     solution_data: { solution: sudokuData.solution },
-    content: sudokuData,
     is_daily: true,
     daily_date: today,
     play_count: 0
@@ -717,7 +716,6 @@ async function run() {
     type: 'wordsearch',
     difficulty: 'medium',
     puzzle_data: wsData,
-    content: wsData,
     is_daily: true,
     daily_date: today,
     play_count: 0
@@ -745,7 +743,6 @@ async function run() {
     type: 'logic',
     difficulty: 'medium',
     puzzle_data: logicData,
-    content: logicData,
     is_daily: true,
     daily_date: today,
     play_count: 0
@@ -772,7 +769,6 @@ async function run() {
     type: 'wordle',
     difficulty: 'medium',
     puzzle_data: { solution: wordSolution },
-    content: { solution: wordSolution },
     is_daily: true,
     daily_date: today,
     play_count: 0
@@ -794,7 +790,6 @@ async function run() {
     type: 'jigsaw',
     difficulty: 'medium',
     puzzle_data: { image_url: chosenUrl, pieces },
-    content: { image_url: chosenUrl, pieces },
     is_daily: true,
     daily_date: today,
     play_count: 0

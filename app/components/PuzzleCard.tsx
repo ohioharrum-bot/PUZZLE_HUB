@@ -11,6 +11,7 @@ const TYPE_LABELS: Record<string, string> = {
   logic: 'Logic',
   jigsaw: 'Jigsaw',
   wordle: 'Word Guesser',
+  crossword: 'Crossword',
 }
 
 const TYPE_BAR: Record<string, string> = {
@@ -19,6 +20,7 @@ const TYPE_BAR: Record<string, string> = {
   logic: 'bar-logic',
   jigsaw: 'bar-jigsaw',
   wordle: 'bar-wordsearch',
+  crossword: 'bar-logic',
 }
 
 const TYPE_THUMB: Record<string, string> = {
@@ -27,9 +29,10 @@ const TYPE_THUMB: Record<string, string> = {
   logic: 'thumb-logic',
   jigsaw: 'thumb-jigsaw',
   wordle: 'thumb-wordsearch',
+  crossword: 'thumb-logic',
 }
 
-const CATEGORIES = ['all', 'sudoku', 'wordsearch', 'logic', 'jigsaw', 'wordle'] as const
+const CATEGORIES = ['all', 'sudoku', 'wordsearch', 'logic', 'jigsaw', 'wordle', 'crossword'] as const
 
 function formatDate(date?: string) {
   if (!date) return ''
@@ -117,7 +120,6 @@ export function ReferencePuzzleCard({ puzzle }: { puzzle: Puzzle }) {
 }
 
 export function HomePuzzleExplorer({ puzzles, daily, today }: { puzzles: Puzzle[]; daily: Puzzle[]; today: string }) {
-  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>('all')
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
   const supabase = createClient()
 
@@ -125,11 +127,18 @@ export function HomePuzzleExplorer({ puzzles, daily, today }: { puzzles: Puzzle[
     supabase.auth.getSession().then(({ data: { session } }) => setIsLoggedIn(!!session))
   }, [supabase])
 
-  const filtered = category === 'all'
-    ? puzzles.filter(p => !p.is_daily)
-    : puzzles.filter(p => p.type === category && !p.is_daily)
-
   const featuredDaily = daily.find(p => p.type === 'sudoku') || daily[0]
+
+  // Define section configuration matching: Sudoku → Word Search → Logic → Jigsaw → Crossword
+  // We also include 'wordle' (Word Guesser) and 'crossword' categories to match layout instructions and seeded data
+  const SECTIONS = [
+    { type: 'sudoku', label: 'SUDOKU', href: '/puzzles/sudoku' },
+    { type: 'wordsearch', label: 'WORD SEARCH', href: '/puzzles/wordsearch' },
+    { type: 'logic', label: 'LOGIC', href: '/puzzles/logic' },
+    { type: 'jigsaw', label: 'JIGSAW', href: '/puzzles/jigsaw' },
+    { type: 'crossword', label: 'CROSSWORD', href: '/puzzles/crossword' },
+    { type: 'wordle', label: 'WORD GUESSER', href: '/puzzles/word-guesser' },
+  ] as const
 
   return (
     <>
@@ -210,29 +219,49 @@ export function HomePuzzleExplorer({ puzzles, daily, today }: { puzzles: Puzzle[
 
         <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP!} format="horizontal" />
 
-        <div className="category-tabs">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              type="button"
-              className={`cat-tab${category === cat ? ' active' : ''}`}
-              onClick={() => setCategory(cat)}
-            >
-              {cat === 'all' ? 'All' : cat === 'wordle' ? 'Word Guesser' : TYPE_LABELS[cat] || cat}
-            </button>
-          ))}
-        </div>
+        {/* Organized Category Sections */}
+        {SECTIONS.map((sec) => {
+          // SQL Query Equivalent for this category's latest puzzles:
+          // SELECT DISTINCT ON (type, difficulty) * FROM puzzles WHERE type = sec.type ORDER BY type, difficulty, created_at DESC;
 
-        <div className="section-header">
-          <span className="section-title">All Puzzles</span>
-          <Link href="/puzzles/sudoku" className="section-link">View all</Link>
-        </div>
+          const catPuzzles = puzzles.filter(p => p.type === sec.type)
+          if (catPuzzles.length === 0) return null
 
-        <div className="puzzle-grid">
-          {filtered.slice(0, 12).map(p => (
-            <ReferencePuzzleCard key={p.id} puzzle={p} />
-          ))}
-        </div>
+          // Fetch the daily puzzle for today in this category
+          const catDaily = daily.find(p => p.type === sec.type)
+
+          // Fetch 1 Easy, 1 Medium, 1 Hard (non-daily) puzzle
+          // Since catPuzzles is already ordered by created_at DESC, find will return the newest one.
+          const easyPuzzle = catPuzzles.find(p => !p.is_daily && p.difficulty === 'easy')
+          const mediumPuzzle = catPuzzles.find(p => !p.is_daily && p.difficulty === 'medium')
+          const hardPuzzle = catPuzzles.find(p => !p.is_daily && p.difficulty === 'hard')
+
+          // Group and order cards. Daily puzzle goes first.
+          const cards: Puzzle[] = []
+          if (catDaily) cards.push(catDaily)
+          if (easyPuzzle) cards.push(easyPuzzle)
+          if (mediumPuzzle) cards.push(mediumPuzzle)
+          if (hardPuzzle) cards.push(hardPuzzle)
+
+          // Show maximum 4 cards in a row
+          const displayCards = cards.slice(0, 4)
+
+          if (displayCards.length === 0) return null
+
+          return (
+            <div key={sec.type} style={{ marginBottom: 40 }}>
+              <div className="section-header">
+                <span className="section-title">{sec.label}</span>
+                <Link href={sec.href} className="section-link">View all →</Link>
+              </div>
+              <div className="puzzle-grid">
+                {displayCards.map(p => (
+                  <ReferencePuzzleCard key={p.id} puzzle={p} />
+                ))}
+              </div>
+            </div>
+          )
+        })}
 
         <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM!} format="rectangle" />
       </main>
