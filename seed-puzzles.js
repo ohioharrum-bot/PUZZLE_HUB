@@ -594,6 +594,45 @@ async function seed() {
     });
   });
 
+  // Crossword Seeding
+  const crosswordData = {
+    grid: [
+      ['C', 'A', 'T'],
+      ['O', '#', 'Y'],
+      ['W', 'H', 'Y']
+    ],
+    clues: {
+      across: [
+        { number: 1, clue: "Feline pet (3 letters)", answer: "CAT", row: 0, col: 0 },
+        { number: 3, clue: "For what reason (3 letters)", answer: "WHY", row: 2, col: 0 }
+      ],
+      down: [
+        { number: 1, clue: "Bovine milk producer (3 letters)", answer: "COW", row: 0, col: 0 },
+        { number: 2, clue: "At the end of a question: '..., right?' (2 letters)", answer: "TY", row: 0, col: 2 }
+      ]
+    }
+  };
+
+  newPuzzles.push({
+    id: uuidv4(),
+    title: "Mini Crossword #1",
+    type: 'wordle',
+    difficulty: 'easy',
+    puzzle_data: crosswordData,
+    is_daily: false,
+    play_count: 0
+  });
+
+  newPuzzles.push({
+    id: uuidv4(),
+    title: `Daily Crossword - ${today}`,
+    type: 'wordle',
+    difficulty: 'easy',
+    puzzle_data: crosswordData,
+    is_daily: true,
+    play_count: 0
+  });
+
 
   console.log(`📦 Generated ${newPuzzles.length} puzzles. Refreshing Supabase table...`);
 

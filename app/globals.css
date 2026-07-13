@@ -2632,3 +2632,80 @@ nav,
     font-size: 12px;
   }
 }
+
+/* Homepage 5-Column Category Grid */
+.homepage-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  margin-top: 32px;
+  margin-bottom: 48px;
+  align-items: stretch;
+}
+
+@media (max-width: 1200px) {
+  .homepage-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .homepage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.homepage-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.homepage-column .puzzle-card {
+  flex: 1;
+}
+
+.homepage-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.homepage-column-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gray-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.homepage-column-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700) !important;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.homepage-column-link:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  color: var(--black) !important;
+}

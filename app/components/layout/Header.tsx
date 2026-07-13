@@ -15,7 +15,7 @@ const LOGO_SVG = (
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAuth = pathname.startsWith('/auth')
-  const isGame = /^\/puzzles\/(sudoku|logic|jigsaw|word-guesser|wordsearch)\/[^/]+$/.test(pathname)
+  const isGame = /^\/puzzles\/(sudoku|logic|jigsaw|word-guesser|wordsearch|crossword)\/[^/]+$/.test(pathname)
 
   if (isAuth || isGame) {
     return <>{children}</>
@@ -117,6 +117,7 @@ export default function Header() {
     { href: '/puzzles/wordsearch', label: 'Word Search', match: pathname.startsWith('/puzzles/wordsearch') },
     { href: '/puzzles/logic', label: 'Logic', match: pathname.startsWith('/puzzles/logic') },
     { href: '/puzzles/jigsaw', label: 'Jigsaw', match: pathname.startsWith('/puzzles/jigsaw') },
+    { href: '/puzzles/crossword', label: 'Crossword', match: pathname.startsWith('/puzzles/crossword') },
   ]
 
   return (

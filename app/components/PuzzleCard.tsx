@@ -37,7 +37,7 @@ const CATEGORIES = ['all', 'sudoku', 'wordsearch', 'logic', 'jigsaw', 'wordle', 
 function formatDate(date?: string) {
   if (!date) return ''
   const d = new Date(`${date}T12:00:00`)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 function PuzzleIcon({ type }: { type: string }) {
@@ -87,7 +87,7 @@ export function ReferencePuzzleCard({ puzzle }: { puzzle: Puzzle }) {
     : `/puzzles/${displayType}/${puzzle.id}`
 
   return (
-    <Link href={href} className="puzzle-card">
+    <Link href={href} className="puzzle-card flex-1 flex flex-col">
       <div className={`card-color-bar ${TYPE_BAR[puzzle.type] || 'bar-sudoku'}`} />
       <div className="card-thumb">
         <div className={`card-thumb-inner ${TYPE_THUMB[puzzle.type] || 'thumb-sudoku'}`}>
@@ -97,9 +97,9 @@ export function ReferencePuzzleCard({ puzzle }: { puzzle: Puzzle }) {
       <div className="card-info">
         <div className="card-meta-row">
           <span className="card-category">{TYPE_LABELS[puzzle.type] || puzzle.type}</span>
-          {puzzle.is_daily && <span className="card-badge">Daily</span>}
+          {puzzle.is_daily && puzzle.daily_date && <span className="card-badge">{formatDate(puzzle.daily_date)}</span>}
         </div>
-        <div className="card-title">{puzzle.title}</div>
+        <div className="card-title">{puzzle.title.replace(/\d{4}-\d{2}-\d{2}/g, (match) => formatDate(match))}</div>
         <div className="card-footer">
           <span className={`difficulty-pill ${pillClass}`}>{puzzle.difficulty}</span>
           <span className="card-players">{puzzle.play_count} playing</span>
@@ -120,148 +120,55 @@ export function ReferencePuzzleCard({ puzzle }: { puzzle: Puzzle }) {
 }
 
 export function HomePuzzleExplorer({ puzzles, daily, today }: { puzzles: Puzzle[]; daily: Puzzle[]; today: string }) {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
-  const supabase = createClient()
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setIsLoggedIn(!!session))
-  }, [supabase])
-
-  const featuredDaily = daily.find(p => p.type === 'sudoku') || daily[0]
-
-  // Define section configuration matching: Sudoku → Word Search → Logic → Jigsaw → Crossword
-  // We also include 'wordle' (Word Guesser) and 'crossword' categories to match layout instructions and seeded data
+  // Define categories: Sudoku, Word Search, Logic, Jigsaw, Crossword
   const SECTIONS = [
     { type: 'sudoku', label: 'SUDOKU', href: '/puzzles/sudoku' },
     { type: 'wordsearch', label: 'WORD SEARCH', href: '/puzzles/wordsearch' },
     { type: 'logic', label: 'LOGIC', href: '/puzzles/logic' },
     { type: 'jigsaw', label: 'JIGSAW', href: '/puzzles/jigsaw' },
     { type: 'crossword', label: 'CROSSWORD', href: '/puzzles/crossword' },
-    { type: 'wordle', label: 'WORD GUESSER', href: '/puzzles/word-guesser' },
   ] as const
+
+  // For each category, select the Easy puzzle (Daily Easy first, then most recent Easy)
+  const columns = SECTIONS.map(sec => {
+    // All easy puzzles for this type
+    const easyPuzzles = puzzles.filter(p => p.type === sec.type && p.difficulty === 'easy')
+    
+    // Sort: is_daily DESC, created_at DESC
+    const sorted = [...easyPuzzles].sort((a, b) => {
+      if (a.is_daily !== b.is_daily) {
+        return a.is_daily ? -1 : 1
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+
+    const selectedPuzzle = sorted[0] || null
+
+    return {
+      ...sec,
+      puzzle: selectedPuzzle
+    }
+  })
 
   return (
     <>
-      <div className="daily-strip">
-        <span className="daily-strip-label">Today</span>
-        <div className="daily-strip-puzzles">
-          {daily.slice(0, 3).map(p => {
-            const displayType = p.type === 'wordle' ? 'word-guesser' : p.type
-            const isGated = (p.difficulty === 'medium' || p.difficulty === 'hard') && isLoggedIn === false
-            const href = isGated
-              ? '/auth/login?message=Create a free account to play Medium and Hard puzzles'
-              : `/puzzles/${displayType}/${p.id}`
+      <main className="main" style={{ marginTop: 24 }}>
+        <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP!} format="horizontal" />
 
+        <div className="homepage-grid items-stretch">
+          {columns.map(col => {
+            if (!col.puzzle) return null
             return (
-              <Link key={p.id} href={href} className="daily-chip">
-                <div className="daily-chip-icon">
-                  <PuzzleIcon type={p.type} />
+              <div key={col.type} className="homepage-column flex flex-col">
+                <div className="homepage-column-header">
+                  <span className="homepage-column-title">{col.label}</span>
                 </div>
-                <div className="daily-chip-text">
-                  <span className="daily-chip-name">{p.title.replace(/ - .+$/, '')}</span>
-                  <span className="daily-chip-meta">{p.difficulty} · {formatDate(p.daily_date || today)}</span>
-                </div>
-                {isGated && (
-                  <div className="daily-chip-lock" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#a3a3a3" strokeWidth="2.5">
-                      <path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                    </svg>
-                  </div>
-                )}
-              </Link>
+                <ReferencePuzzleCard puzzle={col.puzzle} />
+                <Link href={col.href} className="homepage-column-link">View all</Link>
+              </div>
             )
           })}
         </div>
-        <Link href="/puzzles/sudoku" className="daily-strip-cta">View all daily →</Link>
-      </div>
-
-      <main className="main">
-        <div className="stats-bar">
-          <div className="stat-item"><div className="stat-number">{puzzles.length}+</div><div className="stat-label">Puzzles</div></div>
-          <div className="stat-item"><div className="stat-number">5</div><div className="stat-label">Categories</div></div>
-          <div className="stat-item"><div className="stat-number">Daily</div><div className="stat-label">New Challenges</div></div>
-          <div className="stat-item"><div className="stat-number">Free</div><div className="stat-label">To Play</div></div>
-        </div>
-
-        <div className="section-header"><span className="section-title">Featured</span></div>
-        <div className="featured-row">
-          {featuredDaily ? (
-            <Link href={`/puzzles/sudoku/${featuredDaily.id}`} className="featured-card dark">
-              <div>
-                <div className="featured-label">Daily Challenge</div>
-                <div className="featured-title">{featuredDaily.title}</div>
-              </div>
-              <div>
-                <div className="featured-meta">{formatDate(featuredDaily.daily_date || today)} · {featuredDaily.play_count} playing now</div>
-                <span className="featured-cta">Play now →</span>
-              </div>
-            </Link>
-          ) : (
-            <Link href="/puzzles/sudoku" className="featured-card dark">
-              <div>
-                <div className="featured-label">Daily Challenge</div>
-                <div className="featured-title">Today&apos;s Sudoku</div>
-              </div>
-              <div><span className="featured-cta">Play now →</span></div>
-            </Link>
-          )}
-          <Link href="/auth/login" className="featured-card blue">
-            <div>
-              <div className="featured-label">Free Account</div>
-              <div className="featured-title">Unlock Medium &amp; Hard Puzzles</div>
-            </div>
-            <div>
-              <div className="featured-meta">Track progress across all categories</div>
-              <span className="featured-cta">Sign up free →</span>
-            </div>
-          </Link>
-        </div>
-
-        <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP!} format="horizontal" />
-
-        {/* Organized Category Sections */}
-        {SECTIONS.map((sec) => {
-          // SQL Query Equivalent for this category's latest puzzles:
-          // SELECT DISTINCT ON (type, difficulty) * FROM puzzles WHERE type = sec.type ORDER BY type, difficulty, created_at DESC;
-
-          const catPuzzles = puzzles.filter(p => p.type === sec.type)
-          if (catPuzzles.length === 0) return null
-
-          // Fetch the daily puzzle for today in this category
-          const catDaily = daily.find(p => p.type === sec.type)
-
-          // Fetch 1 Easy, 1 Medium, 1 Hard (non-daily) puzzle
-          // Since catPuzzles is already ordered by created_at DESC, find will return the newest one.
-          const easyPuzzle = catPuzzles.find(p => !p.is_daily && p.difficulty === 'easy')
-          const mediumPuzzle = catPuzzles.find(p => !p.is_daily && p.difficulty === 'medium')
-          const hardPuzzle = catPuzzles.find(p => !p.is_daily && p.difficulty === 'hard')
-
-          // Group and order cards. Daily puzzle goes first.
-          const cards: Puzzle[] = []
-          if (catDaily) cards.push(catDaily)
-          if (easyPuzzle) cards.push(easyPuzzle)
-          if (mediumPuzzle) cards.push(mediumPuzzle)
-          if (hardPuzzle) cards.push(hardPuzzle)
-
-          // Show maximum 4 cards in a row
-          const displayCards = cards.slice(0, 4)
-
-          if (displayCards.length === 0) return null
-
-          return (
-            <div key={sec.type} style={{ marginBottom: 40 }}>
-              <div className="section-header">
-                <span className="section-title">{sec.label}</span>
-                <Link href={sec.href} className="section-link">View all →</Link>
-              </div>
-              <div className="puzzle-grid">
-                {displayCards.map(p => (
-                  <ReferencePuzzleCard key={p.id} puzzle={p} />
-                ))}
-              </div>
-            </div>
-          )
-        })}
 
         <AdBanner slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM!} format="rectangle" />
       </main>
